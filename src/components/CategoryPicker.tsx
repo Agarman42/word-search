@@ -1,0 +1,46 @@
+import { CATEGORIES } from '../lib/wordLists';
+import { MASTERY_INFO } from '../lib/mastery';
+import type { CategoryId, MasteryTier } from '../types';
+import { ScreenHeader } from './ScreenHeader';
+
+interface CategoryPickerProps {
+  completions: Partial<Record<CategoryId, number>>;
+  mastery: Partial<Record<CategoryId, MasteryTier>>;
+  onSelect: (category: CategoryId) => void;
+}
+
+export function CategoryPicker({ completions, mastery, onSelect }: CategoryPickerProps) {
+  return (
+    <div className="screen categories-screen">
+      <ScreenHeader title="Categories" subtitle="Pick a theme and start hunting" />
+
+      <div className="category-grid">
+        {CATEGORIES.map((cat, i) => {
+          const tier = mastery[cat.id] ?? 'none';
+          const m = MASTERY_INFO[tier];
+          return (
+            <button
+              key={cat.id}
+              className="category-card"
+              style={{
+                '--cat-color': cat.color,
+                '--delay': `${i * 50}ms`,
+              } as React.CSSProperties}
+              onClick={() => onSelect(cat.id)}
+            >
+              <div className="category-glow" />
+              <span className="category-icon">{cat.icon}</span>
+              <span className="category-name">{cat.name}</span>
+              <span className="category-desc">{cat.description}</span>
+              <span className="category-mastery">{m.icon} {m.label}</span>
+              {(completions[cat.id] ?? 0) > 0 && (
+                <span className="category-plays">{completions[cat.id]} played</span>
+              )}
+              <span className="category-arrow">→</span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}

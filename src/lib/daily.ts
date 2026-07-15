@@ -1,0 +1,112 @@
+import type { CategoryId, Stats } from '../types';
+
+const DAILY_CATEGORIES: CategoryId[] = [
+  'animals', 'food', 'sports', 'movies', 'geography', 'kids', 'holiday',
+];
+
+const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+const COMMENTARY: Record<CategoryId, string[]> = {
+  animals: [
+    'Creatures great and small await your keen eye.',
+    'The wild kingdom hides in plain sight today.',
+    'Track the beasts woven through the grid.',
+  ],
+  food: [
+    'A feast of flavors scattered across the board.',
+    'Every bite-sized word is hiding in plain sight.',
+    "Today's menu: delicious discoveries only.",
+  ],
+  sports: [
+    'Athletic action packed into every line.',
+    'Champions find words under pressure.',
+    "Game day energy fuels today's puzzle.",
+  ],
+  movies: [
+    'Silver screen secrets lie in the letters.',
+    'Scene by scene, word by word.',
+    "Today's feature: a blockbuster grid.",
+  ],
+  geography: [
+    'Journey across lands without leaving your seat.',
+    'Landmarks and locales woven into the maze.',
+    'Explore the world one word at a time.',
+  ],
+  kids: [
+    'Playful words for curious minds.',
+    'Fun and friendly finds await.',
+    'A puzzle sized for wonder.',
+  ],
+  holiday: [
+    'Festive cheer sparkles in every corner.',
+    "Celebrate with today's hidden treasures.",
+    "Season's greetings — now go find them.",
+  ],
+};
+
+export function getDailyCategory(dateStr: string): CategoryId {
+  const d = new Date(dateStr + 'T12:00:00');
+  return DAILY_CATEGORIES[d.getDay() % DAILY_CATEGORIES.length];
+}
+
+export function getDailyNumber(dateStr: string): number {
+  const epoch = new Date('2026-01-01T12:00:00').getTime();
+  const d = new Date(dateStr + 'T12:00:00').getTime();
+  return Math.floor((d - epoch) / 86400000) + 1;
+}
+
+export function getDailyCommentary(dateStr: string, category: CategoryId): string {
+  const day = new Date(dateStr + 'T12:00:00').getDay();
+  const lines = COMMENTARY[category];
+  return lines[day % lines.length];
+}
+
+export function getDailyTitle(dateStr: string): string {
+  const d = new Date(dateStr + 'T12:00:00');
+  return `${DAY_NAMES[d.getDay()]}'s Challenge`;
+}
+
+export function getWeekStart(date: Date = new Date()): string {
+  const d = new Date(date);
+  const day = d.getDay();
+  d.setDate(d.getDate() - day);
+  return d.toISOString().slice(0, 10);
+}
+
+export interface WeeklyRecapData {
+  weekStart: string;
+  wordsFound: number;
+  puzzlesCompleted: number;
+  dailiesCompleted: number;
+  bestStreak: number;
+  topCategory: CategoryId | null;
+}
+
+export function getWeeklyRecap(stats: Stats): WeeklyRecapData {
+  const weekStart = stats.weekStartDate ?? getWeekStart();
+  const weekGames = stats.recentGames.filter((g) => {
+    const d = new Date(g.completedAt).toISOString().slice(0, 10);
+    return d >= weekStart;
+  });
+
+  const dailies = stats.completedDailyDates.filter((d) => d >= weekStart).length;
+
+  let topCategory: CategoryId | null = null;
+  let topCount = 0;
+  for (const g of weekGames) {
+    const c = stats.categoryCompletions[g.category] ?? 0;
+    if (c > topCount) {
+      topCount = c;
+      topCategory = g.category;
+    }
+  }
+
+  return {
+    weekStart,
+    wordsFound: stats.weekWordsFound,
+    puzzlesCompleted: weekGames.length,
+    dailiesCompleted: dailies,
+    bestStreak: stats.dailyStreak,
+    topCategory,
+  };
+}
