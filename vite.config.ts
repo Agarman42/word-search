@@ -4,6 +4,7 @@ import { VitePWA } from 'vite-plugin-pwa';
 import pkg from './package.json';
 
 export default defineConfig({
+  base: '/word-search/',
   define: {
     __APP_VERSION__: JSON.stringify(pkg.version),
     __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
@@ -21,7 +22,8 @@ export default defineConfig({
         background_color: '#0a0a0f',
         display: 'standalone',
         orientation: 'any',
-        start_url: '/',
+        start_url: '/word-search/',
+        scope: '/word-search/',
         icons: [
           {
             src: 'pwa-192.png',
