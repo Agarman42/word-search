@@ -786,15 +786,23 @@ body {
 }
 
 .app[data-screen='game'] .grid-container {
-  height: 100%;
-  width: min(100%, 100%);
+  flex: 1 1 auto;
+  width: 100%;
   max-width: min(100%, 56dvh);
   max-height: 100%;
+  min-height: 0;
+  min-width: 0;
   aspect-ratio: 1;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
 }
 
-.grid-container { width: 100%; max-width: min(100%, 400px); }
+.grid-container {
+  width: 100%;
+  max-width: min(100%, 400px);
+  min-width: 0;
+}
 
 .grid-frame {
   position: relative;
@@ -804,6 +812,16 @@ body {
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  overflow: hidden;
+  box-sizing: border-box;
+  container-type: size;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
 }
 
 .grid-frame::before {
@@ -831,11 +849,21 @@ body {
   80% { transform: translateX(3px); }
 }
 
+.grid-board-wrap {
+  position: relative;
+  width: min(100cqw, 100cqh);
+  height: min(100cqw, 100cqh);
+  max-width: 100%;
+  max-height: 100%;
+  aspect-ratio: 1;
+  flex-shrink: 0;
+}
+
 .selection-trail {
   position: absolute;
-  inset: 14px;
-  width: calc(100% - 28px);
-  height: calc(100% - 28px);
+  inset: 0;
+  width: 100%;
+  height: 100%;
   pointer-events: none;
   z-index: 3;
   filter: drop-shadow(0 0 8px rgba(167, 139, 250, 0.6));
@@ -850,23 +878,16 @@ body {
   gap: 3px;
   width: 100%;
   height: 100%;
-  aspect-ratio: 1;
   position: relative;
   z-index: 2;
+  min-width: 0;
+  min-height: 0;
+  container-type: size;
 }
 
 .app[data-screen='game'] .grid-frame {
-  height: 100%;
+  flex: 1;
   padding: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.app[data-screen='game'] .grid-board {
-  max-height: 100%;
-  width: auto;
-  height: 100%;
 }
 
 .grid-cell {
@@ -877,7 +898,10 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.04);
   border-radius: 7px;
   aspect-ratio: 1;
-  transition: background 0.2s ease, transform 0.15s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.2s ease;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
   position: relative;
   animation: cellIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
@@ -890,7 +914,6 @@ body {
 .grid-cell.selecting {
   background: rgba(167, 139, 250, 0.3);
   border-color: rgba(167, 139, 250, 0.5);
-  transform: scale(1.08);
   z-index: 4;
   box-shadow: 0 0 16px rgba(139, 92, 246, 0.35);
 }
@@ -911,12 +934,16 @@ body {
 }
 
 .grid-letter {
-  font-size: clamp(0.6rem, 3.2vw, 1rem);
+  font-size: calc(clamp(0.4rem, 7cqi, 1rem) * var(--font-scale, 1));
   font-weight: 600;
-  letter-spacing: 0.03em;
+  letter-spacing: 0;
+  line-height: 1;
   color: var(--text);
   pointer-events: none;
   user-select: none;
+  max-width: 100%;
+  overflow: hidden;
+  text-align: center;
 }
 
 .grid-cell.found .grid-letter {
@@ -1882,17 +1909,12 @@ body {
 .grid-cell.revealing {
   animation: letterReveal 0.2s var(--ease-spring);
   background: rgba(167, 139, 250, 0.45) !important;
-  transform: scale(1.12);
   z-index: 5;
 }
 
 @keyframes letterReveal {
-  from { opacity: 0.3; transform: scale(0.8); }
-  to { opacity: 1; transform: scale(1.12); }
-}
-
-.grid-letter {
-  font-size: calc(clamp(0.6rem, 3.2vw, 1rem) * var(--font-scale, 1));
+  from { opacity: 0.3; }
+  to { opacity: 1; }
 }
 
 /* Colorblind patterns */
@@ -1910,7 +1932,7 @@ body {
   pointer-events: none;
 }
 
-.grid-cell { position: relative; overflow: hidden; }
+.grid-cell { position: relative; }
 
 /* Facts toast */
 .fact-toast {
@@ -2147,18 +2169,12 @@ body {
 
 .found-words-overlay {
   position: absolute;
-  inset: 14px;
-  width: calc(100% - 28px);
-  height: calc(100% - 28px);
+  inset: 0;
+  width: 100%;
+  height: 100%;
   pointer-events: none;
   z-index: 1;
   filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.2));
-}
-
-.app[data-screen='game'] .found-words-overlay {
-  inset: 10px;
-  width: calc(100% - 20px);
-  height: calc(100% - 20px);
 }
 
 .grid-cell.hint-pulse {
@@ -2169,8 +2185,8 @@ body {
 }
 
 @keyframes hintPulse {
-  0%, 100% { transform: scale(1); box-shadow: 0 0 12px rgba(251, 191, 36, 0.35); }
-  50% { transform: scale(1.1); box-shadow: 0 0 24px rgba(251, 191, 36, 0.65); }
+  0%, 100% { box-shadow: 0 0 12px rgba(251, 191, 36, 0.35); }
+  50% { box-shadow: 0 0 24px rgba(251, 191, 36, 0.65); }
 }
 
 .btn-hint {

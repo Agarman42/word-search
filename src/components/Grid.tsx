@@ -212,32 +212,33 @@ export function Grid({
   return (
     <div className={`grid-container cat-bg-${category}`}>
       <div className={`grid-frame ${shaking ? 'shake' : ''}`}>
-        <svg className="found-words-overlay" viewBox="0 0 100 100" preserveAspectRatio="none">
-          {foundWordLines}
-        </svg>
-
-        {selecting && currentCells.length >= 2 && (
-          <svg className="selection-trail" viewBox="0 0 100 100" preserveAspectRatio="none">
-            <defs>
-              <linearGradient id="trail-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#a78bfa" />
-                <stop offset="100%" stopColor="#22d3ee" />
-              </linearGradient>
-            </defs>
-            <polyline
-              points={trailPoints}
-              fill="none"
-              stroke="url(#trail-grad)"
-              strokeWidth="5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
+        <div className="grid-board-wrap">
+          <svg className="found-words-overlay" viewBox="0 0 100 100" preserveAspectRatio="none">
+            {foundWordLines}
           </svg>
-        )}
 
-        <div
-          ref={gridRef}
-          className="grid-board"
+          {selecting && currentCells.length >= 2 && (
+            <svg className="selection-trail" viewBox="0 0 100 100" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="trail-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor="#a78bfa" />
+                  <stop offset="100%" stopColor="#22d3ee" />
+                </linearGradient>
+              </defs>
+              <polyline
+                points={trailPoints}
+                fill="none"
+                stroke="url(#trail-grad)"
+                strokeWidth="5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          )}
+
+          <div
+            ref={gridRef}
+            className="grid-board"
           style={{
             gridTemplateColumns: `repeat(${gridSize}, 1fr)`,
             '--font-scale': settings.fontScale,
@@ -287,6 +288,7 @@ export function Grid({
               );
             }),
           )}
+          </div>
         </div>
       </div>
       <div className={`category-fx cat-fx-${category}`} aria-hidden="true" />
