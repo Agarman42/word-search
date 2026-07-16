@@ -18,13 +18,13 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg'],
+      includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
       manifest: {
         name: 'WordSeek — Word Search',
         short_name: 'WordSeek',
         description: 'A premium word search puzzle experience',
-        theme_color: '#ffffff',
-        background_color: '#ffffff',
+        theme_color: '#08080d',
+        background_color: '#08080d',
         display: 'standalone',
         orientation: 'any',
         start_url: '/word-search/',
@@ -41,7 +41,7 @@ export default defineConfig({
             type: 'image/png',
           },
           {
-            src: 'pwa-512.png',
+            src: 'pwa-512-maskable.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'maskable',
