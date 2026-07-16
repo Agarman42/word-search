@@ -115,7 +115,7 @@ export function Atlas({ stats, onSelectCategory, embedded }: AtlasProps) {
   return (
     <div className="screen atlas-screen">
       <ScreenHeader
-        title="Lexis Atlas"
+        title="Word Atlas"
         subtitle={`${exploredCount} of ${CATEGORIES.length} regions explored`}
       />
       {content}

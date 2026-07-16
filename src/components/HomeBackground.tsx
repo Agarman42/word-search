@@ -3,8 +3,9 @@ const SIZE = 9;
 const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
 const WORDS: { word: string; row: number; col: number; dr: number; dc: number; color: string }[] = [
-  { word: 'LEXIS', row: 1, col: 1, dr: 0, dc: 1, color: '#fde68a' },
-  { word: 'FIND', row: 3, col: 4, dr: 0, dc: 1, color: '#bbf7d0' },
+  { word: 'WORD', row: 0, col: 2, dr: 0, dc: 1, color: '#ddd6fe' },
+  { word: 'SEEK', row: 2, col: 1, dr: 0, dc: 1, color: '#fde68a' },
+  { word: 'FIND', row: 4, col: 3, dr: 0, dc: 1, color: '#bbf7d0' },
   { word: 'PLAY', row: 5, col: 1, dr: 0, dc: 1, color: '#bfdbfe' },
   { word: 'FUN', row: 2, col: 6, dr: 1, dc: 0, color: '#fbcfe8' },
   { word: 'SWIPE', row: 6, col: 3, dr: 0, dc: 1, color: '#fed7aa' },

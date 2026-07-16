@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { APP_NAME } from '../lib/brand';
 import { getActiveSeason } from '../lib/seasonal';
 import { dismissSeason, isSeasonDismissed } from '../lib/seasonalDismiss';
 import { dismissDailyNudge } from '../lib/dailyNudge';
@@ -114,7 +115,7 @@ export function AnnouncementRail(props: AnnouncementRailProps) {
                     if (type === 'install') props.onInstall();
                   }}
                 >
-                  {type === 'install' && 'Install Lexis on your device'}
+                  {type === 'install' && `Install ${APP_NAME} on your device`}
                   {type === 'daily' && `Play Daily #${getDailyNumber(today)}`}
                   {type === 'seasonal' && season?.name}
                 </button>

@@ -2,6 +2,7 @@ import type { CategoryId, Settings, Stats } from '../types';
 import { todayString } from '../lib/rng';
 import { getDailyCommentary, getDailyNumber, getDailyCategory } from '../lib/daily';
 import { getContinueLabel, getContinueSession } from '../lib/continueSession';
+import { APP_NAME, APP_TAGLINE } from '../lib/brand';
 import { getCategory } from '../lib/wordLists';
 import { HomeBackground } from './HomeBackground';
 import { AnnouncementRail } from './AnnouncementRail';
@@ -88,8 +89,8 @@ export function Home({
               <div className="hero-logo-ring" />
             </div>
             <p className="hero-eyebrow">Swipe · Find · Win</p>
-            <h1 className="hero-title display-font">Lexis</h1>
-            <p className="hero-subtitle">The word search that feels like a game — not homework.</p>
+            <h1 className="hero-title display-font">{APP_NAME}</h1>
+            <p className="hero-subtitle">{APP_TAGLINE}</p>
           </header>
 
           <div className="home-hero-cta">

@@ -12,12 +12,12 @@ import { getWordFact, getGenericFact } from '../lib/facts';
 import { getCompletionMessage, getWordFoundMessage, getBlitzEndMessage } from '../lib/microcopy';
 import { generateChallengeUrl } from '../lib/share';
 import { getPack, getPackSeed } from '../lib/packs';
-import { AchievementIcon, CategoryIcon, IconBack, IconDiamond, IconHint, IconPack, IconSpark } from './Icons';
+import { CategoryIcon, IconBack, IconHint, IconPack, IconSpark } from './Icons';
 import { Grid, getFoundColor, getFoundPattern } from './Grid';
 import { WordList } from './WordList';
 import { ShareCard } from './ShareCard';
 import { ToastDock, type ToastItem } from './ToastDock';
-import { CountUp } from './CountUp';
+import { GameComplete } from './GameComplete';
 
 interface GameProps {
   category: CategoryId;
@@ -441,83 +441,40 @@ export function Game({
       </div>
 
       {completed && (
-        <div className="game-complete-overlay">
-          <div className="confetti" aria-hidden="true">
-            {Array.from({ length: 24 }).map((_, i) => (
-              <span key={i} className="confetti-piece" style={{ '--i': i } as React.CSSProperties} />
-            ))}
-          </div>
-          <div className="game-complete-card glass-panel">
-            <div className="complete-badge"><IconSpark size={24} /></div>
-            <h2 className="display-font">{isBlitz ? 'Blitz Over' : 'Puzzle Complete'}</h2>
-            <p className="complete-subtitle">{completionMsg}</p>
-            <p className="complete-time display-font">
-              {isBlitz ? (
-                <><CountUp value={foundWords.size} /> words</>
-              ) : (
-                formatTime(elapsed)
-              )}
-            </p>
-            {wrongAttempts === 0 && !isBlitz && (
-              <p className="complete-perfect">
-                <IconDiamond size={16} />
-                Flawless — no mistakes
-              </p>
-            )}
-            {newAchievement && (
-              <div className="complete-achievement panel-card">
-                <AchievementIconInline id={newAchievement.id} title={newAchievement.title} />
-              </div>
-            )}
-            <div className="complete-stats">
-              <div className="complete-stat">
-                <span className="complete-stat-val"><CountUp value={foundWords.size} /></span>
-                <span className="complete-stat-lbl">Words</span>
-              </div>
-              <div className="complete-stat">
-                <span className="complete-stat-val"><CountUp value={wrongAttempts} /></span>
-                <span className="complete-stat-lbl">Misses</span>
-              </div>
-            </div>
-            <div className="complete-actions">
-              {isDaily && (
-                <button className="btn btn-glass" onClick={() => setShowShare(true)}>
-                  Share result
-                </button>
-              )}
-              {!isDaily && !isPack && (
-                <button
-                  className="btn btn-glass"
-                  onClick={() => navigator.clipboard.writeText(generateChallengeUrl(seed, category))}
-                >
-                  Copy challenge link
-                </button>
-              )}
-              {!isDaily && (
-                <button
-                  className="btn btn-glass"
-                  onClick={() => {
-                    setReplayKey((k) => k + 1);
-                    setCompleted(false);
-                    setFoundWords(new Map());
-                    setFoundPatterns(new Map());
-                    setWrongAttempts(0);
-                    setHintUsed(false);
-                    setHintCell(null);
-                    setHintWord(null);
-                    startTime.current = Date.now();
-                    blitzEnded.current = false;
-                  }}
-                >
-                  Play again
-                </button>
-              )}
-              <button className="btn btn-primary btn-glow" onClick={onBack}>
-                {isPack ? 'Back to packs' : 'Continue'}
-              </button>
-            </div>
-          </div>
-        </div>
+        <GameComplete
+          isBlitz={isBlitz}
+          completionMsg={completionMsg}
+          elapsedMs={elapsed}
+          wordsFound={foundWords.size}
+          wrongAttempts={wrongAttempts}
+          isPerfect={wrongAttempts === 0 && !isBlitz}
+          newAchievement={newAchievement}
+          isDaily={isDaily}
+          isPack={isPack}
+          onShare={isDaily ? () => setShowShare(true) : undefined}
+          onCopyChallenge={
+            !isDaily && !isPack
+              ? () => navigator.clipboard.writeText(generateChallengeUrl(seed, category))
+              : undefined
+          }
+          onPlayAgain={
+            !isDaily
+              ? () => {
+                  setReplayKey((k) => k + 1);
+                  setCompleted(false);
+                  setFoundWords(new Map());
+                  setFoundPatterns(new Map());
+                  setWrongAttempts(0);
+                  setHintUsed(false);
+                  setHintCell(null);
+                  setHintWord(null);
+                  startTime.current = Date.now();
+                  blitzEnded.current = false;
+                }
+              : undefined
+          }
+          onContinue={onBack}
+        />
       )}
 
       {showShare && (
@@ -538,15 +495,6 @@ export function Game({
           onClose={() => setShowShare(false)}
         />
       )}
-    </div>
-  );
-}
-
-function AchievementIconInline({ id, title }: { id: string; title: string }) {
-  return (
-    <div className="complete-achievement-inner">
-      <AchievementIcon id={id} size={28} />
-      <span>New: <strong>{title}</strong></span>
     </div>
   );
 }

@@ -1,3 +1,5 @@
+import { APP_NAME } from '../lib/brand';
+
 interface InstallPromptProps {
   onInstall: () => void;
   onDismiss: () => void;
@@ -9,7 +11,7 @@ export function InstallPrompt({ onInstall, onDismiss }: InstallPromptProps) {
       <div className="install-prompt-text">
         <span className="install-icon">📲</span>
         <div>
-          <span className="install-title">Install Lexis</span>
+          <span className="install-title">Install {APP_NAME}</span>
           <span className="install-desc">Add to your home screen for the best experience</span>
         </div>
       </div>

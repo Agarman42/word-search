@@ -1,4 +1,5 @@
 import type { Achievement } from '../types';
+import { APP_NAME } from '../lib/brand';
 import { AchievementIcon } from './Icons';
 
 interface AchievementUnlockProps {
@@ -8,7 +9,7 @@ interface AchievementUnlockProps {
 
 export function AchievementUnlock({ achievement, onDismiss }: AchievementUnlockProps) {
   const share = () => {
-    const text = `🏅 Unlocked in Lexis: ${achievement.title} — ${achievement.description}`;
+    const text = `🏅 Unlocked in ${APP_NAME}: ${achievement.title} — ${achievement.description}`;
     navigator.clipboard.writeText(text).catch(() => {});
   };
 

@@ -1,3 +1,5 @@
+import { APP_NAME } from './brand';
+
 const ONBOARDING_KEY = 'lexis-onboarding-v2';
 
 export function hasCompletedOnboarding(): boolean {
@@ -25,7 +27,7 @@ export const ONBOARDING_STEPS: {
 }[] = [
   {
     type: 'welcome',
-    title: 'Welcome to Lexis',
+    title: `Welcome to ${APP_NAME}`,
     body: 'A premium word search built for swipe-and-find gameplay on any device.',
   },
   {

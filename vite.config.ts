@@ -20,8 +20,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg'],
       manifest: {
-        name: 'Lexis — Word Search',
-        short_name: 'Lexis',
+        name: 'WordSeek — Word Search',
+        short_name: 'WordSeek',
         description: 'A premium word search puzzle experience',
         theme_color: '#ffffff',
         background_color: '#ffffff',

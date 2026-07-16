@@ -248,7 +248,7 @@ export function LogoMark({ size = 48 }: { size?: number }) {
     <svg width={size} height={size} viewBox="0 0 48 48" fill="none">
       <rect x="2" y="2" width="44" height="44" rx="14" fill="#fafafa" />
       <rect x="2" y="2" width="44" height="44" rx="14" stroke="#1e1b4b" strokeWidth="1.5" />
-      <text x="24" y="33" textAnchor="middle" fontFamily="Fraunces, Georgia, serif" fontSize="26" fontWeight="600" fill="#1e1b4b">L</text>
+      <text x="24" y="33" textAnchor="middle" fontFamily="Sora, system-ui" fontSize="22" fontWeight="700" fill="#5b21b6">W</text>
     </svg>
   );
 }

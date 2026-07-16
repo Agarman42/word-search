@@ -1,3 +1,4 @@
+import { APP_NAME } from '../lib/brand';
 import { APP_VERSION, BUILD_TIME, formatBuildTime } from '../lib/version';
 
 export function VersionFooter() {
@@ -5,7 +6,7 @@ export function VersionFooter() {
 
   return (
     <footer className="version-footer version-footer-subtle" aria-label="App version">
-      <span className="version-brand">Lexis</span>
+      <span className="version-brand">{APP_NAME}</span>
       <span className="version-sep">·</span>
       <span className="version-number">v{APP_VERSION}</span>
       <span className="version-sep">·</span>
