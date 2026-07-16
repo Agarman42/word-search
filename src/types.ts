@@ -148,6 +148,6 @@ export const DEFAULT_SETTINGS: Settings = {
   highContrast: false,
   fontScale: 1,
   oneHandMode: false,
-  lightBackground: false,
+  lightBackground: true,
   showFacts: true,
 };

@@ -2,7 +2,7 @@ import type { GameMode, Settings as SettingsType, SoundPack } from '../types';
 import { DIFFICULTY_PRESETS, applyDifficultyPreset } from '../lib/difficulty';
 import { getVersionLabel } from '../lib/version';
 import { ScreenHeader } from './ScreenHeader';
-import { ThemeToggle } from './ThemeToggle';
+
 
 interface SettingsProps {
   settings: SettingsType;
@@ -176,16 +176,17 @@ export function Settings({ settings, onChange }: SettingsProps) {
 
         <section className="settings-section">
           <h3>Appearance</h3>
-          <div className="setting-row theme-setting-row">
+          <label className="toggle-row">
             <div className="setting-info">
-              <span className="setting-label">Light Background</span>
-              <span className="setting-desc">White background for easier reading</span>
+              <span className="setting-label">Dark Background</span>
+              <span className="setting-desc">White background is the default</span>
             </div>
-            <ThemeToggle
-              lightBackground={settings.lightBackground}
-              onChange={(v) => onChange({ lightBackground: v })}
+            <input
+              type="checkbox"
+              checked={!settings.lightBackground}
+              onChange={(e) => onChange({ lightBackground: !e.target.checked })}
             />
-          </div>
+          </label>
         </section>
 
         <section className="settings-section">
