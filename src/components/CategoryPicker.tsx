@@ -1,6 +1,7 @@
 import { CATEGORIES } from '../lib/wordLists';
 import { MASTERY_INFO } from '../lib/mastery';
 import type { CategoryId, MasteryTier } from '../types';
+import { CategoryIcon } from './Icons';
 import { ScreenHeader } from './ScreenHeader';
 
 interface CategoryPickerProps {
@@ -27,7 +28,7 @@ export function CategoryPicker({ completions, mastery, onSelect, embedded }: Cat
             onClick={() => onSelect(cat.id)}
           >
             <div className="category-glow" />
-            <span className="category-icon">{cat.icon}</span>
+            <span className="category-icon"><CategoryIcon id={cat.id} size={28} /></span>
             <span className="category-name">{cat.name}</span>
             <span className="category-desc">{cat.description}</span>
             <span className="category-mastery">{m.icon} {m.label}</span>

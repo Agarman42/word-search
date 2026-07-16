@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { AppState, GameRecord, Settings } from '../types';
+import type { Achievement, AppState, GameRecord, Settings } from '../types';
 import { checkAchievements, updateDailyStreak } from '../lib/achievements';
 import {
   loadAppState,
@@ -14,6 +14,7 @@ import {
 
 export function useAppState() {
   const [state, setState] = useState<AppState>(() => loadAppState());
+  const [unlockQueue, setUnlockQueue] = useState<Achievement[]>([]);
 
   useEffect(() => {
     saveAppState(state);
@@ -50,13 +51,26 @@ export function useAppState() {
 
   const onGameComplete = useCallback((record: GameRecord) => {
     setState((s) => {
+      const prevUnlocked = new Set(
+        s.achievements.filter((a) => a.unlockedAt).map((a) => a.id),
+      );
       let stats = recordGameCompletion(s.stats, record);
       if (record.isDaily) {
         stats = updateDailyStreak(stats);
       }
       const achievements = checkAchievements(s.achievements, stats, record);
+      const newUnlocks = achievements.filter(
+        (a) => a.unlockedAt && !prevUnlocked.has(a.id),
+      );
+      if (newUnlocks.length > 0) {
+        queueMicrotask(() => setUnlockQueue((q) => [...q, ...newUnlocks]));
+      }
       return { ...s, stats, achievements };
     });
+  }, []);
+
+  const dismissUnlock = useCallback(() => {
+    setUnlockQueue((q) => q.slice(1));
   }, []);
 
   const onToggleFavorite = useCallback((word: string) => {
@@ -65,6 +79,8 @@ export function useAppState() {
 
   return {
     state,
+    unlockQueue,
+    dismissUnlock,
     patchSettings,
     onWordFound,
     onWrongAttempt,

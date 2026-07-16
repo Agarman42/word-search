@@ -1,11 +1,14 @@
-import type { Achievement } from '../types';
+import type { Achievement, Stats } from '../types';
+import { getAchievementHint } from '../lib/achievementProgress';
+import { AchievementIcon } from './Icons';
 import { ScreenHeader } from './ScreenHeader';
 
 interface AchievementsPanelProps {
   achievements: Achievement[];
+  stats: Stats;
 }
 
-export function AchievementsPanel({ achievements }: AchievementsPanelProps) {
+export function AchievementsPanel({ achievements, stats }: AchievementsPanelProps) {
   const unlocked = achievements.filter((a) => a.unlockedAt);
   const locked = achievements.filter((a) => !a.unlockedAt);
   const pct = Math.round((unlocked.length / achievements.length) * 100);
@@ -24,7 +27,7 @@ export function AchievementsPanel({ achievements }: AchievementsPanelProps) {
 
       {unlocked.length === 0 && (
         <div className="empty-state panel-card">
-          <span className="empty-icon">🏅</span>
+          <span className="empty-icon"><AchievementIcon id="first_puzzle" size={28} /></span>
           <p>Play puzzles and complete dailies to unlock your first achievement.</p>
         </div>
       )}
@@ -35,7 +38,7 @@ export function AchievementsPanel({ achievements }: AchievementsPanelProps) {
           <div className="achievement-grid">
             {unlocked.map((a) => (
               <div key={a.id} className="achievement-card unlocked panel-card">
-                <span className="achievement-icon">{a.icon}</span>
+                <span className="achievement-icon"><AchievementIcon id={a.id} size={28} /></span>
                 <div className="achievement-info">
                   <span className="achievement-title">{a.title}</span>
                   <span className="achievement-desc">{a.description}</span>
@@ -49,15 +52,27 @@ export function AchievementsPanel({ achievements }: AchievementsPanelProps) {
       <section className="achievement-section">
         <h3>{unlocked.length > 0 ? 'Locked' : 'All Achievements'}</h3>
         <div className="achievement-grid">
-          {(unlocked.length > 0 ? locked : achievements).map((a) => (
-            <div key={a.id} className={`achievement-card panel-card ${a.unlockedAt ? 'unlocked' : 'locked'}`}>
-              <span className="achievement-icon">{a.unlockedAt ? a.icon : '🔒'}</span>
-              <div className="achievement-info">
-                <span className="achievement-title">{a.title}</span>
-                <span className="achievement-desc">{a.description}</span>
+          {(unlocked.length > 0 ? locked : achievements).map((a) => {
+            const hint = getAchievementHint(a, stats);
+            return (
+              <div key={a.id} className={`achievement-card panel-card ${a.unlockedAt ? 'unlocked' : 'locked'}`}>
+                <span className="achievement-icon">
+                  {a.unlockedAt ? (
+                    <AchievementIcon id={a.id} size={28} />
+                  ) : (
+                    <span className="achievement-lock">🔒</span>
+                  )}
+                </span>
+                <div className="achievement-info">
+                  <span className="achievement-title">{a.title}</span>
+                  <span className="achievement-desc">{a.description}</span>
+                  {!a.unlockedAt && hint && (
+                    <span className="achievement-hint">{hint}</span>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </section>
     </div>

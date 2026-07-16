@@ -1,20 +1,23 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { CategoryId, Cell, GameMode, GameRecord, PlacedWord, Puzzle, Settings } from '../types';
+import type { Achievement, CategoryId, Cell, GameMode, GameRecord, PlacedWord, Puzzle, Settings } from '../types';
 import { generatePuzzle, getDailySeed } from '../lib/puzzleGenerator';
 import { formatTime } from '../lib/gameLogic';
 import { getCategory } from '../lib/wordLists';
 import { todayString } from '../lib/rng';
 import { playCompleteSound, playHintSound } from '../lib/feedback';
 import { getPuzzleOptions, getEffectiveGridSettings } from '../lib/difficulty';
-import { getDailyCommentary, getDailyNumber, getDailyTitle } from '../lib/daily';
+import { getDailyNumber } from '../lib/daily';
+import { CATEGORY_THEMES } from '../lib/categoryThemes';
 import { getWordFact, getGenericFact } from '../lib/facts';
 import { getCompletionMessage, getWordFoundMessage, getBlitzEndMessage } from '../lib/microcopy';
 import { generateChallengeUrl } from '../lib/share';
 import { getPack, getPackSeed } from '../lib/packs';
-import { IconBack } from './Icons';
+import { AchievementIcon, CategoryIcon, IconBack, IconDiamond, IconHint, IconPack, IconSpark } from './Icons';
 import { Grid, getFoundColor, getFoundPattern } from './Grid';
 import { WordList } from './WordList';
 import { ShareCard } from './ShareCard';
+import { ToastDock, type ToastItem } from './ToastDock';
+import { CountUp } from './CountUp';
 
 interface GameProps {
   category: CategoryId;
@@ -32,10 +35,20 @@ interface GameProps {
   onToggleFavorite: (word: string) => void;
   favoriteWords: string[];
   blitzHighScore: number;
+  newAchievement?: Achievement | null;
 }
 
 const BLITZ_DURATION_MS = 60000;
 const UNDO_DELAY_MS = 2500;
+
+const MODE_LABELS: Record<GameMode, string> = {
+  relaxed: 'Relaxed',
+  timed: 'Timed',
+  daily: 'Daily',
+  blitz: 'Blitz',
+  zen: 'Zen',
+  coop: 'Co-op',
+};
 
 export function Game({
   category,
@@ -53,21 +66,24 @@ export function Game({
   onToggleFavorite,
   favoriteWords,
   blitzHighScore,
+  newAchievement,
 }: GameProps) {
   const isPack = packId != null && packLevel != null;
   const pack = isPack ? getPack(packId) : undefined;
+  const theme = CATEGORY_THEMES[category];
 
   const mode: GameMode = isDaily ? 'daily' : isPack ? 'relaxed' : settings.gameMode;
   const isBlitz = mode === 'blitz';
   const isZen = mode === 'zen';
   const isCoop = mode === 'coop';
+  const [replayKey, setReplayKey] = useState(0);
 
   const seed = useMemo(() => {
     if (isPack) return getPackSeed(packId!, packLevel!);
     if (challengeSeed) return challengeSeed;
     if (isDaily) return getDailySeed(todayString());
-    return `${category}-${Date.now()}-${Math.random()}`;
-  }, [category, isDaily, challengeSeed, isPack, packId, packLevel]);
+    return `${category}-${Date.now()}-${Math.random()}-${replayKey}`;
+  }, [category, isDaily, challengeSeed, isPack, packId, packLevel, replayKey]);
 
   const puzzleOptions = useMemo(() => getPuzzleOptions(settings), [settings]);
   const { gridSize, wordCount } = useMemo(
@@ -91,6 +107,7 @@ export function Game({
   const [elapsed, setElapsed] = useState(0);
   const [blitzRemaining, setBlitzRemaining] = useState(BLITZ_DURATION_MS);
   const [completed, setCompleted] = useState(false);
+  const [progressSweep, setProgressSweep] = useState(false);
   const [lastFound, setLastFound] = useState<string | null>(null);
   const [wordFact, setWordFact] = useState<string | null>(null);
   const [showShare, setShowShare] = useState(false);
@@ -127,7 +144,11 @@ export function Game({
   const finishGame = useCallback(
     (wordsFoundCount: number, timeUp = false) => {
       const timeMs = isBlitz ? BLITZ_DURATION_MS : Date.now() - startTime.current;
-      setCompleted(true);
+      setProgressSweep(true);
+      setTimeout(() => {
+        setCompleted(true);
+        setProgressSweep(false);
+      }, 380);
       setCompletionMsg(
         isBlitz
           ? getBlitzEndMessage(wordsFoundCount, blitzHighScore)
@@ -196,7 +217,7 @@ export function Game({
     (word: PlacedWord) => {
       if (foundWords.has(word.word)) return;
 
-      const color = getFoundColor(foundWords.size);
+      const color = getFoundColor(foundWords.size, category);
       const pattern = getFoundPattern(foundWords.size);
       const next = new Map(foundWords);
       const nextPatterns = new Map(foundPatterns);
@@ -280,57 +301,102 @@ export function Game({
 
   const cat = getCategory(category);
   const progress = (foundWords.size / puzzle.words.length) * 100;
-  const dailyCommentary = isDaily
-    ? getDailyCommentary(dailyDate, category)
-    : null;
 
   const headerTitle = isDaily
-    ? 'Daily Challenge'
+    ? `Daily #${getDailyNumber(dailyDate)}`
     : isPack && pack
-      ? `${pack.name} · ${packLevel! + 1}/${pack.puzzleCount}`
+      ? pack.name
       : cat.name;
 
+  const headerSub = isPack && pack
+    ? `Level ${packLevel! + 1}/${pack.puzzleCount}`
+    : null;
+
+  const toasts: ToastItem[] = [];
+  if (showUndo) {
+    toasts.push({
+      id: 'undo',
+      priority: 'undo',
+      content: <span>Wrong swipe</span>,
+      action: { label: 'Undo', onClick: handleUndo },
+    });
+  }
+  if (lastFound) {
+    toasts.push({
+      id: `found-${lastFound}`,
+      priority: 'found',
+      content: (
+        <>
+          <IconSpark size={14} className="toast-spark-icon" />
+          {getWordFoundMessage(lastFound)} <strong>{lastFound}</strong>
+        </>
+      ),
+    });
+  }
+  if (wordFact) {
+    toasts.push({
+      id: 'fact',
+      priority: 'fact',
+      content: (
+        <>
+          <span className="fact-label">Did you know?</span>
+          <p>{wordFact}</p>
+        </>
+      ),
+    });
+  }
+
+  const modeLabel = isPack ? 'Pack' : MODE_LABELS[mode];
+  const coopSuffix = isCoop ? ` · P${coopPlayer}` : '';
+
   return (
-    <div className={`screen game-screen cat-world-${category} ${isLandscape ? 'landscape-layout' : ''}`}>
-      {isDaily && dailyCommentary && (
-        <div className="daily-commentary glass-panel">
-          <span className="daily-tag">{getDailyTitle(dailyDate)} · #{getDailyNumber(dailyDate)}</span>
-          <p>{dailyCommentary}</p>
-        </div>
-      )}
+    <div
+      className={`screen game-screen cat-world-${category} ${isLandscape ? 'landscape-layout' : ''}`}
+      style={{ '--cat-tint': theme.tint, '--cat-bar': theme.bar, '--cat-accent': theme.accent } as React.CSSProperties}
+    >
+      <div className="game-cat-bar" aria-hidden="true" />
 
       <header className="game-header-compact panel-card">
         <button className="btn-icon-only" onClick={onBack} aria-label="Back">
           <IconBack />
         </button>
         <div className="game-header-center">
-          <span className="game-category">
-            <span className="game-cat-icon">{isPack && pack ? pack.icon : cat.icon}</span>
-            {headerTitle}
+          <span className="game-category" title={headerTitle}>
+            <span className="game-cat-icon">
+              {isPack && pack ? <IconPack size={18} /> : <CategoryIcon id={category} size={18} />}
+            </span>
+            <span className="game-category-text">
+              <span className="game-category-name">{headerTitle}</span>
+              {headerSub && <span className="game-category-sub">{headerSub}</span>}
+            </span>
           </span>
-          <span className="game-mode-badge">
-            {mode === 'relaxed' && (isPack ? 'Pack' : 'Relaxed')}
-            {mode === 'timed' && 'Timed'}
-            {mode === 'daily' && 'Daily'}
-            {mode === 'blitz' && 'Blitz · 60s'}
-            {mode === 'zen' && 'Zen'}
-            {mode === 'coop' && `Co-op · P${coopPlayer}`}
-            {' · '}{foundWords.size}/{puzzle.words.length}
-          </span>
+          <div className="game-header-chips">
+            <span className="game-chip mode-chip">{modeLabel}{coopSuffix}</span>
+            <span className="game-chip count-chip">{foundWords.size}/{puzzle.words.length}</span>
+          </div>
         </div>
         <button
-          className={`btn-hint ${hintUsed ? 'used' : ''}`}
+          className={`btn-hint-v2 ${hintUsed ? 'used' : ''}`}
           onClick={useHint}
           disabled={hintUsed || completed}
           aria-label="Use hint"
           title={hintUsed ? 'Hint used' : 'Reveal first letter of a word'}
         >
-          💡
+          <span className="hint-ring" />
+          <IconHint size={18} />
+          {!hintUsed && <span className="hint-label">1</span>}
         </button>
       </header>
 
-      <div className="game-progress-bar" aria-hidden="true">
-        <div className="game-progress-fill" style={{ width: `${progress}%` }} />
+      <div className={`game-progress-wrap ${progressSweep ? 'sweep' : ''}`} aria-hidden="true">
+        <div className="game-progress-segments">
+          {puzzle.words.map((_, i) => (
+            <span key={i} className={`progress-seg ${i < foundWords.size ? 'filled' : ''}`} />
+          ))}
+        </div>
+        <div className="game-progress-bar">
+          <div className="game-progress-fill" style={{ width: `${progress}%` }} />
+        </div>
       </div>
 
       {isBlitz && (
@@ -346,28 +412,7 @@ export function Game({
         </div>
       )}
 
-      {lastFound && (
-        <div className="found-toast" key={lastFound}>
-          <span className="toast-spark">✦</span>
-          {getWordFoundMessage(lastFound)} <strong>{lastFound}</strong>
-        </div>
-      )}
-
-      {showUndo && (
-        <div className="undo-toast">
-          <span>Wrong swipe</span>
-          <button className="btn btn-glass undo-btn" onClick={handleUndo}>
-            Undo
-          </button>
-        </div>
-      )}
-
-      {wordFact && (
-        <div className="fact-toast glass-panel">
-          <span className="fact-label">Did you know?</span>
-          <p>{wordFact}</p>
-        </div>
-      )}
+      <ToastDock toasts={toasts} />
 
       <div className="game-play-area">
         <div className="game-board-wrap">
@@ -403,25 +448,34 @@ export function Game({
             ))}
           </div>
           <div className="game-complete-card glass-panel">
-            <div className="complete-badge">✦</div>
-            <h2>{isBlitz ? 'Blitz Over' : 'Puzzle Complete'}</h2>
+            <div className="complete-badge"><IconSpark size={24} /></div>
+            <h2 className="display-font">{isBlitz ? 'Blitz Over' : 'Puzzle Complete'}</h2>
             <p className="complete-subtitle">{completionMsg}</p>
-            <p className="complete-time">
-              {isBlitz ? `${foundWords.size} words` : formatTime(elapsed)}
+            <p className="complete-time display-font">
+              {isBlitz ? (
+                <><CountUp value={foundWords.size} /> words</>
+              ) : (
+                formatTime(elapsed)
+              )}
             </p>
             {wrongAttempts === 0 && !isBlitz && (
               <p className="complete-perfect">
-                <span className="perfect-icon">💎</span>
+                <IconDiamond size={16} />
                 Flawless — no mistakes
               </p>
             )}
+            {newAchievement && (
+              <div className="complete-achievement panel-card">
+                <AchievementIconInline id={newAchievement.id} title={newAchievement.title} />
+              </div>
+            )}
             <div className="complete-stats">
               <div className="complete-stat">
-                <span className="complete-stat-val">{foundWords.size}</span>
+                <span className="complete-stat-val"><CountUp value={foundWords.size} /></span>
                 <span className="complete-stat-lbl">Words</span>
               </div>
               <div className="complete-stat">
-                <span className="complete-stat-val">{wrongAttempts}</span>
+                <span className="complete-stat-val"><CountUp value={wrongAttempts} /></span>
                 <span className="complete-stat-lbl">Misses</span>
               </div>
             </div>
@@ -437,6 +491,25 @@ export function Game({
                   onClick={() => navigator.clipboard.writeText(generateChallengeUrl(seed, category))}
                 >
                   Copy challenge link
+                </button>
+              )}
+              {!isDaily && (
+                <button
+                  className="btn btn-glass"
+                  onClick={() => {
+                    setReplayKey((k) => k + 1);
+                    setCompleted(false);
+                    setFoundWords(new Map());
+                    setFoundPatterns(new Map());
+                    setWrongAttempts(0);
+                    setHintUsed(false);
+                    setHintCell(null);
+                    setHintWord(null);
+                    startTime.current = Date.now();
+                    blitzEnded.current = false;
+                  }}
+                >
+                  Play again
                 </button>
               )}
               <button className="btn btn-primary btn-glow" onClick={onBack}>
@@ -465,6 +538,15 @@ export function Game({
           onClose={() => setShowShare(false)}
         />
       )}
+    </div>
+  );
+}
+
+function AchievementIconInline({ id, title }: { id: string; title: string }) {
+  return (
+    <div className="complete-achievement-inner">
+      <AchievementIcon id={id} size={28} />
+      <span>New: <strong>{title}</strong></span>
     </div>
   );
 }

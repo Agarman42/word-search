@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { CategoryId, PuzzleTab, Screen } from './types';
 import { todayString } from './lib/rng';
 import { useAppState } from './hooks/useAppState';
@@ -18,10 +18,30 @@ import { Onboarding } from './components/Onboarding';
 import { Navigation } from './components/Navigation';
 import { AmbientBackground } from './components/AmbientBackground';
 import { VersionFooter } from './components/VersionFooter';
+import { AchievementUnlock } from './components/AchievementUnlock';
+
+type NavDirection = 'forward' | 'back' | 'tab';
+
+const SCREEN_DEPTH: Partial<Record<Screen, number>> = {
+  home: 0,
+  stats: 0,
+  settings: 0,
+  puzzles: 1,
+  categories: 1,
+  packs: 1,
+  atlas: 1,
+  weekly: 1,
+  achievements: 1,
+  game: 2,
+};
+
+const TAB_SCREENS = new Set<Screen>(['home', 'puzzles', 'stats', 'settings']);
 
 export default function App() {
   const {
     state,
+    unlockQueue,
+    dismissUnlock,
     patchSettings,
     onWordFound,
     onWrongAttempt,
@@ -31,6 +51,7 @@ export default function App() {
     onToggleFavorite,
   } = useAppState();
   const [screen, setScreen] = useState<Screen>('home');
+  const [navDirection, setNavDirection] = useState<NavDirection>('forward');
   const [puzzleTab, setPuzzleTab] = useState<PuzzleTab>('categories');
   const [activeCategory, setActiveCategory] = useState<CategoryId | null>(null);
   const [isDaily, setIsDaily] = useState(false);
@@ -38,6 +59,7 @@ export default function App() {
   const [packSession, setPackSession] = useState<{ packId: string; level: number } | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(() => !hasCompletedOnboarding());
   const [showDailyNudge, setShowDailyNudge] = useState(false);
+  const prevScreen = useRef(screen);
 
   const { lightBackground } = state.settings;
   const { canInstall, install, dismiss } = useInstallPrompt();
@@ -46,7 +68,7 @@ export default function App() {
   useEffect(() => {
     document.documentElement.classList.toggle('theme-dark', !lightBackground);
     const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute('content', lightBackground ? '#ffffff' : '#030306');
+    if (meta) meta.setAttribute('content', lightBackground ? '#ffffff' : '#0a0a0f');
   }, [lightBackground]);
 
   useEffect(() => {
@@ -56,6 +78,7 @@ export default function App() {
       setChallengeSeed(challenge.seed);
       setIsDaily(false);
       setPackSession(null);
+      setNavDirection('forward');
       setScreen('game');
       clearChallengeHash();
     }
@@ -67,12 +90,31 @@ export default function App() {
     }
   }, [showOnboarding, dailyCompleted, state.stats.totalPuzzlesCompleted]);
 
+  const navigateTo = (target: Screen) => {
+    const from = prevScreen.current;
+    const fromDepth = SCREEN_DEPTH[from] ?? 0;
+    const toDepth = SCREEN_DEPTH[target] ?? 0;
+
+    if (TAB_SCREENS.has(target) && TAB_SCREENS.has(from) && target !== from) {
+      setNavDirection('tab');
+    } else if (toDepth > fromDepth) {
+      setNavDirection('forward');
+    } else if (toDepth < fromDepth) {
+      setNavDirection('back');
+    } else {
+      setNavDirection('forward');
+    }
+
+    prevScreen.current = target;
+    setScreen(target);
+  };
+
   const startGame = (category: CategoryId, daily = false, seed?: string) => {
     setActiveCategory(category);
     setIsDaily(daily);
     setChallengeSeed(seed);
     setPackSession(null);
-    setScreen('game');
+    navigateTo('game');
   };
 
   const startPackGame = (packId: string, level: number, category: CategoryId) => {
@@ -80,12 +122,12 @@ export default function App() {
     setPackSession({ packId, level });
     setIsDaily(false);
     setChallengeSeed(undefined);
-    setScreen('game');
+    navigateTo('game');
   };
 
   const goToPuzzles = (tab: PuzzleTab = 'categories') => {
     setPuzzleTab(tab);
-    setScreen('puzzles');
+    navigateTo('puzzles');
   };
 
   const handleBack = () => {
@@ -96,9 +138,9 @@ export default function App() {
     setPackSession(null);
     if (wasPack) {
       setPuzzleTab('packs');
-      setScreen('puzzles');
+      navigateTo('puzzles');
     } else {
-      setScreen('home');
+      navigateTo('home');
     }
   };
 
@@ -118,7 +160,7 @@ export default function App() {
       goToPuzzles(tab);
       return;
     }
-    setScreen(target);
+    navigateTo(target);
   };
 
   return (
@@ -131,17 +173,22 @@ export default function App() {
       data-screen={screen}
     >
       <AmbientBackground />
-      <main key={screen} className="app-main screen-enter">
+      <main
+        key={screen}
+        className={`app-main screen-enter screen-${navDirection}`}
+      >
         {screen === 'home' && (
           <Home
             stats={state.stats}
+            settings={state.settings}
             lightBackground={lightBackground}
             onToggleLight={(v) => patchSettings({ lightBackground: v })}
             onPlay={() => goToPuzzles('categories')}
             onDaily={handleDaily}
+            onContinue={(cat) => startGame(cat)}
             onPacks={() => goToPuzzles('packs')}
-            onWeekly={() => setScreen('weekly')}
-            onAchievements={() => setScreen('achievements')}
+            onWeekly={() => navigateTo('weekly')}
+            onAchievements={() => navigateTo('achievements')}
             dailyCompleted={dailyCompleted}
             showDailyNudge={showDailyNudge}
             onDismissDailyNudge={() => setShowDailyNudge(false)}
@@ -167,7 +214,10 @@ export default function App() {
             challengeSeed={challengeSeed}
             packId={packSession?.packId}
             packLevel={packSession?.level}
-            onBack={handleBack}
+            onBack={() => {
+              if (unlockQueue[0]) dismissUnlock();
+              handleBack();
+            }}
             onComplete={onGameComplete}
             onWordFound={onWordFound}
             onWrongAttempt={onWrongAttempt}
@@ -176,6 +226,7 @@ export default function App() {
             onToggleFavorite={onToggleFavorite}
             favoriteWords={state.stats.favoriteWords}
             blitzHighScore={state.stats.blitzHighScore}
+            newAchievement={unlockQueue[0] ?? null}
           />
         )}
         {screen === 'settings' && (
@@ -183,13 +234,16 @@ export default function App() {
         )}
         {screen === 'stats' && <StatsPanel stats={state.stats} />}
         {screen === 'achievements' && (
-          <AchievementsPanel achievements={state.achievements} />
+          <AchievementsPanel achievements={state.achievements} stats={state.stats} />
         )}
       </main>
       <VersionFooter />
       <Navigation screen={screen} onNavigate={handleNavigate} />
       {showOnboarding && (
         <Onboarding onComplete={() => setShowOnboarding(false)} />
+      )}
+      {unlockQueue[0] && screen !== 'game' && (
+        <AchievementUnlock achievement={unlockQueue[0]} onDismiss={dismissUnlock} />
       )}
     </div>
   );

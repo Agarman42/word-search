@@ -1,8 +1,10 @@
 import type { Stats } from '../types';
 import { CATEGORIES } from '../lib/wordLists';
 import { formatDuration, formatTime } from '../lib/gameLogic';
+import { getWeeklyWordActivity, getBestCategory } from '../lib/statsActivity';
 import { ScreenHeader } from './ScreenHeader';
 import { getEmptyStatsMessage } from '../lib/microcopy';
+import { CategoryIcon, IconSpark } from './Icons';
 
 interface StatsPanelProps {
   stats: Stats;
@@ -17,24 +19,59 @@ export function StatsPanel({ stats }: StatsPanelProps) {
       : 100;
 
   const isEmpty = stats.totalPuzzlesCompleted === 0;
+  const weekActivity = getWeeklyWordActivity(stats);
+  const maxWeek = Math.max(...weekActivity, 1);
+  const bestCat = getBestCategory(stats);
 
   return (
     <div className="screen stats-screen">
       <ScreenHeader title="Statistics" subtitle="Your journey so far" />
 
       {isEmpty && (
-        <div className="empty-state panel-card">
-          <span className="empty-icon">✦</span>
+        <div className="empty-state panel-card stats-empty-chart">
+          <span className="empty-icon"><IconSpark size={28} /></span>
           <p>{getEmptyStatsMessage()}</p>
+          <div className="sparkline ghost" aria-hidden="true">
+            {Array.from({ length: 7 }).map((_, i) => (
+              <span key={i} className="spark-bar" style={{ height: `${20 + i * 8}%` }} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {!isEmpty && (
+        <div className="stats-sparkline-card panel-card">
+          <span className="sparkline-label">Words found — last 7 days</span>
+          <div className="sparkline">
+            {weekActivity.map((val, i) => (
+              <span
+                key={i}
+                className="spark-bar"
+                style={{ height: `${Math.max(8, (val / maxWeek) * 100)}%` }}
+                title={`${val} words`}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {bestCat && (
+        <div className="best-category-card panel-card">
+          <CategoryIcon id={bestCat.id} size={28} />
+          <div>
+            <span className="best-cat-label">Top category</span>
+            <span className="best-cat-name">{bestCat.name}</span>
+            <span className="best-cat-count">{bestCat.count} puzzles</span>
+          </div>
         </div>
       )}
 
       <div className="stats-hero-grid">
-        <div className="stat-hero-card">
+        <div className="stat-hero-card medal-gold">
           <span className="stat-hero-value">{stats.totalPuzzlesCompleted}</span>
           <span className="stat-hero-label">Puzzles Completed</span>
         </div>
-        <div className="stat-hero-card">
+        <div className="stat-hero-card medal-silver">
           <span className="stat-hero-value">{stats.totalWordsFound}</span>
           <span className="stat-hero-label">Words Found</span>
         </div>
@@ -42,7 +79,7 @@ export function StatsPanel({ stats }: StatsPanelProps) {
           <span className="stat-hero-value">{accuracy}%</span>
           <span className="stat-hero-label">Accuracy</span>
         </div>
-        <div className="stat-hero-card">
+        <div className="stat-hero-card medal-bronze">
           <span className="stat-hero-value">{stats.dailyStreak}</span>
           <span className="stat-hero-label">Current Streak</span>
         </div>
@@ -64,7 +101,7 @@ export function StatsPanel({ stats }: StatsPanelProps) {
             <span>{stats.completedDailyDates.length}</span>
           </div>
           {stats.bestTimes.overall && (
-            <div className="record-row highlight">
+            <div className="record-row highlight record-gold">
               <span>Best Time (Overall)</span>
               <span>{formatTime(stats.bestTimes.overall)}</span>
             </div>
@@ -80,7 +117,7 @@ export function StatsPanel({ stats }: StatsPanelProps) {
             const best = stats.bestTimes[cat.id];
             return (
               <div key={cat.id} className="category-stat-row">
-                <span className="cat-stat-icon">{cat.icon}</span>
+                <span className="cat-stat-icon"><CategoryIcon id={cat.id} size={18} /></span>
                 <span className="cat-stat-name">{cat.name}</span>
                 <span className="cat-stat-count">{count}</span>
                 {best && <span className="cat-stat-best">{formatTime(best)}</span>}
@@ -98,7 +135,10 @@ export function StatsPanel({ stats }: StatsPanelProps) {
               const cat = CATEGORIES.find((c) => c.id === game.category);
               return (
                 <div key={game.id} className="recent-game-row">
-                  <span>{cat?.icon} {game.isDaily ? 'Daily' : cat?.name}</span>
+                  <span>
+                    <CategoryIcon id={game.category} size={16} />{' '}
+                    {game.isDaily ? 'Daily' : cat?.name}
+                  </span>
                   <span className="recent-meta">
                     {formatTime(game.timeMs)} · {game.wordCount} words
                   </span>

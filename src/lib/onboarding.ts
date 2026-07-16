@@ -1,4 +1,4 @@
-const ONBOARDING_KEY = 'lexis-onboarding-v1';
+const ONBOARDING_KEY = 'lexis-onboarding-v2';
 
 export function hasCompletedOnboarding(): boolean {
   try {
@@ -16,19 +16,30 @@ export function markOnboardingComplete(): void {
   }
 }
 
-export const ONBOARDING_STEPS = [
+export type OnboardingStepType = 'welcome' | 'demo-swipe' | 'demo-wrong' | 'explore';
+
+export const ONBOARDING_STEPS: {
+  type: OnboardingStepType;
+  title: string;
+  body: string;
+}[] = [
   {
-    icon: '✦',
+    type: 'welcome',
     title: 'Welcome to Lexis',
     body: 'A premium word search built for swipe-and-find gameplay on any device.',
   },
   {
-    icon: '👆',
+    type: 'demo-swipe',
     title: 'Swipe to find words',
-    body: 'Press a letter and drag in a straight line — horizontal, vertical, or diagonal — to highlight a word.',
+    body: 'Press a letter and drag in a straight line to highlight a word.',
   },
   {
-    icon: '🎯',
+    type: 'demo-wrong',
+    title: 'Made a mistake?',
+    body: 'Wrong swipes can be undone before they count against you.',
+  },
+  {
+    type: 'explore',
     title: 'Explore & progress',
     body: 'Pick categories, complete daily challenges, unlock the Atlas, and climb mastery tiers.',
   },

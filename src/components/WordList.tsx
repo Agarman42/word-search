@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { PlacedWord, Settings } from '../types';
+import { IconStar } from './Icons';
 
 interface WordListProps {
   words: PlacedWord[];
@@ -26,26 +27,42 @@ export function WordList({
   const sorted = [...words].sort((a, b) => a.word.localeCompare(b.word));
   const foundCount = foundWords.size;
   const hiddenCount = words.length - foundCount;
+  const unfound = sorted.filter((w) => !foundWords.has(w.word));
 
   const visibleWords = zenMode
     ? sorted.filter((w) => foundWords.has(w.word))
     : sorted;
 
+  const handleToggle = () => setExpanded((e) => !e);
+
   return (
     <div className={`word-list panel-card ${settings.oneHandMode ? 'one-hand' : ''} ${expanded ? 'expanded' : 'collapsed'}`}>
       <button
         className="word-list-toggle"
-        onClick={() => setExpanded((e) => !e)}
+        onClick={handleToggle}
         aria-expanded={expanded}
       >
         <span className="word-list-title">
           {zenMode ? 'Discovered' : 'Words to find'}
-          <span className="word-list-count-inline">
+          <span className={`word-list-count-inline ${!expanded ? 'count-pill' : ''}`}>
             {foundCount}/{words.length}
           </span>
         </span>
         <span className="word-list-chevron">{expanded ? '▾' : '▸'}</span>
       </button>
+
+      {!expanded && !zenMode && hiddenCount > 0 && (
+        <button className="word-list-peek" onClick={handleToggle} aria-label="Expand word list">
+          {unfound.slice(0, 3).map((w) => (
+            <span key={w.word} className={`word-peek-chip ${hintWord === w.word ? 'hint' : ''}`}>
+              {w.word}
+            </span>
+          ))}
+          {hiddenCount > 3 && (
+            <span className="word-peek-more">+{hiddenCount - 3}</span>
+          )}
+        </button>
+      )}
 
       {expanded && (
         <div className="word-list-body">
@@ -80,7 +97,7 @@ export function WordList({
                       onClick={() => onToggleFavorite(w.word)}
                       aria-label={isFav ? 'Remove favorite' : 'Add favorite'}
                     >
-                      {isFav ? '★' : '☆'}
+                      <IconStar size={14} />
                     </button>
                   )}
                 </li>

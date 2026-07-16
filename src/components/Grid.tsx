@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
 import type { CategoryId, Cell, PlacedWord, Settings } from '../types';
 import { cellKey, findMatchingWord, getLineCells } from '../lib/gameLogic';
+import { getCategoryFoundColor } from '../lib/categoryThemes';
 import {
   playErrorSound,
   playFoundSound,
@@ -22,15 +23,6 @@ interface GridProps {
   onWrongAttempt: () => void;
   onRevealComplete?: (word: PlacedWord) => void;
 }
-
-const FOUND_COLORS = [
-  '#fde68a',
-  '#bbf7d0',
-  '#bfdbfe',
-  '#fbcfe8',
-  '#fed7aa',
-  '#ddd6fe',
-];
 
 function soundFromSettings(settings: Settings): SoundSettings {
   return { sound: settings.sound, soundPack: settings.soundPack };
@@ -63,6 +55,7 @@ export function Grid({
   const [revealingCells, setRevealingCells] = useState<Set<string>>(new Set());
   const [shaking, setShaking] = useState(false);
   const [wrongFlash, setWrongFlash] = useState<Cell[]>([]);
+  const [popWord, setPopWord] = useState<string | null>(null);
   const pointerIdRef = useRef<number | null>(null);
   const sound = soundFromSettings(settings);
 
@@ -88,7 +81,12 @@ export function Grid({
         return;
       }
       const keys = word.cells.map(cellKey);
-      let step = 0;
+      setRevealingCells(new Set([keys[0]]));
+      playRevealTick(sound, 0);
+      setPopWord(word.word);
+      setTimeout(() => setPopWord(null), 420);
+
+      let step = 1;
       const interval = setInterval(() => {
         if (step < keys.length) {
           setRevealingCells((prev) => new Set([...prev, keys[step]]));
@@ -190,6 +188,7 @@ export function Grid({
     return (
       <line
         key={word}
+        className={popWord === word ? 'found-line-pop' : ''}
         x1={start.x}
         y1={start.y}
         x2={end.x}
@@ -313,8 +312,10 @@ export function Grid({
   );
 }
 
-export function getFoundColor(index: number): string {
-  return FOUND_COLORS[index % FOUND_COLORS.length];
+export function getFoundColor(index: number, category?: CategoryId): string {
+  if (category) return getCategoryFoundColor(category, index);
+  const fallback = ['#fde68a', '#bbf7d0', '#bfdbfe', '#fbcfe8', '#fed7aa', '#ddd6fe'];
+  return fallback[index % fallback.length];
 }
 
 export function getFoundPattern(index: number): number {
