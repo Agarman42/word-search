@@ -143,6 +143,12 @@ export interface AppState {
 export interface ChallengeParams {
   seed: string;
   category: CategoryId;
+  /** Encoded so shared puzzles match for every player. */
+  gridSize?: number;
+  wordCount?: number;
+  allowBackwards?: boolean;
+  minWordLength?: number;
+  maxWordLength?: number;
 }
 
 export const DEFAULT_SETTINGS: Settings = {

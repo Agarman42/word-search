@@ -93,10 +93,13 @@ export function getDailyTitle(dateStr: string): string {
 }
 
 export function getWeekStart(date: Date = new Date()): string {
-  const d = new Date(date);
+  const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
   const day = d.getDay();
   d.setDate(d.getDate() - day);
-  return d.toISOString().slice(0, 10);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const dayNum = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${dayNum}`;
 }
 
 export interface WeeklyDayActivity {

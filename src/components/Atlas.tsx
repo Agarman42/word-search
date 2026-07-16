@@ -7,11 +7,19 @@ import { ScreenHeader } from './ScreenHeader';
 const ATLAS_PATHS: [CategoryId, CategoryId][] = [
   ['animals', 'kids'],
   ['animals', 'food'],
+  ['animals', 'nature'],
   ['food', 'holiday'],
+  ['food', 'science'],
   ['holiday', 'geography'],
   ['geography', 'sports'],
+  ['geography', 'space'],
   ['sports', 'movies'],
+  ['movies', 'music'],
   ['movies', 'kids'],
+  ['music', 'books'],
+  ['science', 'space'],
+  ['nature', 'science'],
+  ['books', 'holiday'],
 ];
 
 interface AtlasProps {
@@ -60,14 +68,15 @@ export function Atlas({ stats, onSelectCategory, embedded }: AtlasProps) {
           return (
             <button
               key={cat.id}
-              className={`atlas-node ${explored ? 'explored' : 'locked'}`}
+              className={`atlas-node ${explored ? 'explored' : 'unexplored'}`}
               style={{
                 left: `${cat.atlasX}%`,
                 top: `${cat.atlasY}%`,
                 '--node-color': cat.color,
               } as React.CSSProperties}
               onClick={() => onSelectCategory(cat.id)}
-              title={cat.name}
+              title={explored ? cat.name : `${cat.name} — unexplored`}
+              aria-label={explored ? cat.name : `${cat.name}, unexplored — tap to play`}
             >
               <span className="atlas-node-icon">
                 <CategoryIcon id={cat.id} size={explored ? 18 : 16} />

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import type { CategoryId, PuzzleTab, Screen } from './types';
+import type { CategoryId, ChallengeParams, PuzzleTab, Screen } from './types';
 import { todayString } from './lib/rng';
 import { useAppState } from './hooks/useAppState';
 import { getDailyCategory } from './lib/daily';
@@ -46,8 +46,6 @@ export default function App() {
     dismissUnlock,
     patchSettings,
     onWordFound,
-    onWrongAttempt,
-    onUndoWrong,
     onHintUsed,
     onGameComplete,
     onToggleFavorite,
@@ -57,11 +55,12 @@ export default function App() {
   const [puzzleTab, setPuzzleTab] = useState<PuzzleTab>('categories');
   const [activeCategory, setActiveCategory] = useState<CategoryId | null>(null);
   const [isDaily, setIsDaily] = useState(false);
-  const [challengeSeed, setChallengeSeed] = useState<string | undefined>();
+  const [challenge, setChallenge] = useState<ChallengeParams | null>(null);
   const [packSession, setPackSession] = useState<{ packId: string; level: number } | null>(null);
   const [initialLayoutKey, setInitialLayoutKey] = useState(0);
   const [showOnboarding, setShowOnboarding] = useState(() => !hasCompletedOnboarding());
   const [showDailyNudge, setShowDailyNudge] = useState(false);
+  const [returnScreen, setReturnScreen] = useState<Screen>('home');
   const prevScreen = useRef(screen);
 
   const { lightBackground } = state.settings;
@@ -82,13 +81,24 @@ export default function App() {
     if (meta) meta.setAttribute('content', lightBackground ? '#ffffff' : '#0a0a0f');
   }, [lightBackground]);
 
+  // Prefer OS reduced-motion if user has not customized (we still honor setting when true)
   useEffect(() => {
-    const challenge = parseChallengeFromHash();
-    if (challenge) {
-      setActiveCategory(challenge.category);
-      setChallengeSeed(challenge.seed);
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    if (mq.matches && !state.settings.reduceMotion) {
+      patchSettings({ reduceMotion: true });
+    }
+    // only on first mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    const parsed = parseChallengeFromHash();
+    if (parsed) {
+      setActiveCategory(parsed.category);
+      setChallenge(parsed);
       setIsDaily(false);
       setPackSession(null);
+      setReturnScreen('home');
       setNavDirection('forward');
       setScreen('game');
       clearChallengeHash();
@@ -123,14 +133,16 @@ export default function App() {
   const startGame = (
     category: CategoryId,
     daily = false,
-    seed?: string,
+    challengeParams: ChallengeParams | null = null,
     layoutKey = 0,
+    from: Screen = 'home',
   ) => {
     setActiveCategory(category);
     setIsDaily(daily);
-    setChallengeSeed(seed);
+    setChallenge(challengeParams);
     setPackSession(null);
     setInitialLayoutKey(layoutKey);
+    setReturnScreen(from);
     navigateTo('game');
   };
 
@@ -138,8 +150,10 @@ export default function App() {
     setActiveCategory(category);
     setPackSession({ packId, level });
     setIsDaily(false);
-    setChallengeSeed(undefined);
+    setChallenge(null);
     setInitialLayoutKey(0);
+    setReturnScreen('puzzles');
+    setPuzzleTab('packs');
     navigateTo('game');
   };
 
@@ -150,13 +164,16 @@ export default function App() {
 
   const handleBack = () => {
     const wasPack = !!packSession;
+    const backTo = wasPack ? 'puzzles' : returnScreen;
     setActiveCategory(null);
     setIsDaily(false);
-    setChallengeSeed(undefined);
+    setChallenge(null);
     setPackSession(null);
-    if (wasPack) {
-      setPuzzleTab('packs');
+    if (wasPack || backTo === 'puzzles') {
+      setPuzzleTab(wasPack ? 'packs' : puzzleTab);
       navigateTo('puzzles');
+    } else if (backTo === 'weekly' || backTo === 'achievements') {
+      navigateTo(backTo);
     } else {
       navigateTo('home');
     }
@@ -166,7 +183,7 @@ export default function App() {
     if (unlockQueue[0]) dismissUnlock();
     setActiveCategory(null);
     setIsDaily(false);
-    setChallengeSeed(undefined);
+    setChallenge(null);
     setPackSession(null);
     navigateTo('home');
   };
@@ -183,7 +200,7 @@ export default function App() {
       }
       setActiveCategory(null);
       setIsDaily(false);
-      setChallengeSeed(undefined);
+      setChallenge(null);
       setPackSession(null);
       setPuzzleTab('packs');
       navigateTo('puzzles');
@@ -191,20 +208,20 @@ export default function App() {
     }
 
     if (isDaily) {
-      handleBack();
+      handleMainMenu();
       return;
     }
 
     if (activeCategory) {
-      startGame(activeCategory, false, undefined, Date.now() % 1_000_000 + 1);
+      startGame(activeCategory, false, null, Date.now() % 1_000_000 + 1, returnScreen);
       return;
     }
 
-    handleBack();
+    handleMainMenu();
   };
 
   const handleDaily = () => {
-    startGame(getDailyCategory(todayString()), true);
+    startGame(getDailyCategory(todayString()), true, null, 0, 'home');
   };
 
   const handleSeasonalPlay = () => {
@@ -215,7 +232,7 @@ export default function App() {
     if (target.type === 'pack') {
       startPackGame(target.packId, target.level, target.category);
     } else {
-      startGame(target.category);
+      startGame(target.category, false, null, 0, 'home');
     }
   };
 
@@ -263,7 +280,7 @@ export default function App() {
             onToggleLight={(v) => patchSettings({ lightBackground: v })}
             onPlay={() => goToPuzzles('categories')}
             onDaily={handleDaily}
-            onContinue={(cat) => startGame(cat)}
+            onContinue={(cat) => startGame(cat, false, null, Date.now() % 1_000_000 + 1, 'home')}
             onPacks={() => goToPuzzles('packs')}
             onWeekly={() => navigateTo('weekly')}
             onAchievements={() => navigateTo('achievements')}
@@ -281,20 +298,22 @@ export default function App() {
           <PuzzleHub
             stats={state.stats}
             initialTab={puzzleTab}
-            onSelectCategory={(cat) => startGame(cat)}
-            onShuffleCategory={(cat) => startGame(cat, false, undefined, 1)}
+            onSelectCategory={(cat) => startGame(cat, false, null, 0, 'puzzles')}
+            onShuffleCategory={(cat) =>
+              startGame(cat, false, null, Date.now() % 1_000_000 + 1, 'puzzles')
+            }
             onSelectPack={startPackGame}
           />
         )}
         {screen === 'weekly' && <WeeklyRecap stats={state.stats} />}
         {screen === 'game' && activeCategory && (
           <Game
-            key={`${activeCategory}-${packSession?.packId ?? ''}-${packSession?.level ?? ''}-${initialLayoutKey}-${isDaily}`}
+            key={`${activeCategory}-${packSession?.packId ?? ''}-${packSession?.level ?? ''}-${initialLayoutKey}-${isDaily}-${challenge?.seed ?? ''}`}
             category={activeCategory}
             initialLayoutKey={initialLayoutKey}
             settings={state.settings}
             isDaily={isDaily}
-            challengeSeed={challengeSeed}
+            challenge={challenge}
             packId={packSession?.packId}
             packLevel={packSession?.level}
             onBack={() => {
@@ -303,8 +322,6 @@ export default function App() {
             }}
             onComplete={onGameComplete}
             onWordFound={onWordFound}
-            onWrongAttempt={onWrongAttempt}
-            onUndoWrong={onUndoWrong}
             onHintUsed={onHintUsed}
             onToggleFavorite={onToggleFavorite}
             favoriteWords={state.stats.favoriteWords}

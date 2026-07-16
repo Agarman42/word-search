@@ -36,7 +36,7 @@ const GAME_MODES: { value: GameMode; label: string; desc: string }[] = [
   { value: 'timed', label: 'Timed', desc: 'Race the clock and beat your best' },
   { value: 'blitz', label: 'Blitz', desc: '60 seconds — find as many as you can' },
   { value: 'zen', label: 'Zen', desc: 'Hidden word list — pure discovery' },
-  { value: 'coop', label: 'Co-op', desc: 'Pass & play — alternate finds' },
+  { value: 'coop', label: 'Co-op', desc: 'Pass & play — P1/P2 alternate on each find' },
 ];
 
 export function Settings({
@@ -76,12 +76,13 @@ export function Settings({
 
           <label className="toggle-row">
             <div className="setting-info">
-              <span className="setting-label">Dark Background</span>
+              <span className="setting-label">Light mode</span>
+              <span className="setting-desc">Off for dark background</span>
             </div>
             <input
               type="checkbox"
-              checked={!settings.lightBackground}
-              onChange={(e) => onChange({ lightBackground: !e.target.checked })}
+              checked={settings.lightBackground}
+              onChange={(e) => onChange({ lightBackground: e.target.checked })}
             />
           </label>
 
@@ -224,16 +225,6 @@ export function Settings({
                   onChange={(e) => onChange({ showFacts: e.target.checked })}
                 />
               </label>
-              <label className="toggle-row">
-                <div className="setting-info">
-                  <span className="setting-label">Reduce Motion</span>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={settings.reduceMotion}
-                  onChange={(e) => onChange({ reduceMotion: e.target.checked })}
-                />
-              </label>
             </div>
           )}
         </section>
@@ -249,6 +240,17 @@ export function Settings({
           </button>
           {a11yOpen && (
             <div className="settings-collapse-body">
+              <label className="toggle-row">
+                <div className="setting-info">
+                  <span className="setting-label">Reduce Motion</span>
+                  <span className="setting-desc">Less animation; also follows system preference</span>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={settings.reduceMotion}
+                  onChange={(e) => onChange({ reduceMotion: e.target.checked })}
+                />
+              </label>
               <label className="toggle-row">
                 <div className="setting-info">
                   <span className="setting-label">Colorblind Patterns</span>

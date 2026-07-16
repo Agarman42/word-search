@@ -47,17 +47,20 @@ export const DIFFICULTY_PRESETS: Record<Exclude<DifficultyPreset, 'custom'>, Dif
   },
 };
 
-export function getPuzzleOptions(settings: Settings): PuzzleOptions {
+export function getPuzzleOptions(settings: Settings, gridSize?: number): PuzzleOptions {
   const { min, max } = getWordLengthRange(settings.wordLengthPreset);
   const allowBackwards =
     settings.difficultyPreset === 'custom'
       ? settings.allowBackwards
       : DIFFICULTY_PRESETS[settings.difficultyPreset].allowBackwards;
 
+  const size = gridSize ?? settings.gridSize;
+  const maxLen = Math.min(max, size);
+
   return {
     allowBackwards,
-    minWordLength: min,
-    maxWordLength: max,
+    minWordLength: Math.min(min, maxLen),
+    maxWordLength: maxLen,
   };
 }
 

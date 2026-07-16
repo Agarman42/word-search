@@ -1,6 +1,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { Achievement, CategoryId, Cell, GameMode, GameRecord, PlacedWord, Puzzle, Settings } from '../types';
-import { generatePuzzle, getDailySeed } from '../lib/puzzleGenerator';
+import type {
+  Achievement,
+  CategoryId,
+  Cell,
+  ChallengeParams,
+  GameMode,
+  GameRecord,
+  PlacedWord,
+  Puzzle,
+  PuzzleOptions,
+  Settings,
+} from '../types';
+import { DAILY_PUZZLE_CONFIG, generatePuzzle, getDailySeed } from '../lib/puzzleGenerator';
 import { formatTime } from '../lib/gameLogic';
 import { getCategory } from '../lib/wordLists';
 import { todayString } from '../lib/rng';
@@ -26,14 +37,12 @@ interface GameProps {
   category: CategoryId;
   settings: Settings;
   isDaily: boolean;
-  challengeSeed?: string;
+  challenge?: ChallengeParams | null;
   packId?: string;
   packLevel?: number;
   onBack: () => void;
   onComplete: (record: GameRecord) => void;
   onWordFound: () => void;
-  onWrongAttempt: () => void;
-  onUndoWrong?: () => void;
   onHintUsed?: () => void;
   onToggleFavorite: (word: string) => void;
   favoriteWords: string[];
@@ -69,14 +78,12 @@ export function Game({
   category,
   settings,
   isDaily,
-  challengeSeed,
+  challenge,
   packId,
   packLevel,
   onBack,
   onComplete,
   onWordFound,
-  onWrongAttempt,
-  onUndoWrong,
   onHintUsed,
   onToggleFavorite,
   favoriteWords,
@@ -105,23 +112,54 @@ export function Game({
   const [layoutKey, setLayoutKey] = useState(initialLayoutKey);
   const sessionSalt = useRef(`${Date.now()}-${Math.random()}`);
 
-  const canShuffle = !isDaily && !challengeSeed;
+  const canShuffle = !isDaily && !challenge;
 
   const seed = useMemo(() => {
     if (isDaily) return getDailySeed(todayString());
-    if (challengeSeed) return challengeSeed;
+    if (challenge?.seed) return challenge.seed;
     if (isPack) {
       if (layoutKey === 0) return getPackSeed(packId!, packLevel!);
       return getPackShuffleSeed(packId!, packLevel!, layoutKey);
     }
     return `${category}-${sessionSalt.current}-layout-${layoutKey}`;
-  }, [category, isDaily, challengeSeed, isPack, packId, packLevel, layoutKey]);
+  }, [category, isDaily, challenge, isPack, packId, packLevel, layoutKey]);
 
-  const puzzleOptions = useMemo(() => getPuzzleOptions(settings), [settings]);
-  const { gridSize, wordCount } = useMemo(
-    () => getEffectiveGridSettings(settings),
-    [settings],
-  );
+  const { gridSize, wordCount } = useMemo(() => {
+    if (isDaily) {
+      return { gridSize: DAILY_PUZZLE_CONFIG.gridSize, wordCount: DAILY_PUZZLE_CONFIG.wordCount };
+    }
+    if (challenge?.gridSize && challenge?.wordCount) {
+      return { gridSize: challenge.gridSize, wordCount: challenge.wordCount };
+    }
+    if (settings.gameMode === 'blitz' && !isPack) {
+      return getEffectiveGridSettings(settings);
+    }
+    return getEffectiveGridSettings(settings);
+  }, [isDaily, challenge, settings, isPack]);
+
+  const puzzleOptions: PuzzleOptions = useMemo(() => {
+    if (isDaily) return DAILY_PUZZLE_CONFIG.options;
+    if (
+      challenge &&
+      challenge.minWordLength != null &&
+      challenge.maxWordLength != null
+    ) {
+      return {
+        allowBackwards: challenge.allowBackwards ?? false,
+        minWordLength: challenge.minWordLength,
+        maxWordLength: Math.min(challenge.maxWordLength, gridSize),
+      };
+    }
+    // Long Words pack forces epic-length vocabulary
+    if (packId === 'long-words') {
+      return {
+        allowBackwards: true,
+        minWordLength: Math.min(8, gridSize),
+        maxWordLength: Math.min(15, gridSize),
+      };
+    }
+    return getPuzzleOptions(settings, gridSize);
+  }, [isDaily, challenge, packId, settings, gridSize]);
 
   const puzzle: Puzzle = useMemo(
     () => generatePuzzle(category, gridSize, wordCount, seed, puzzleOptions),
@@ -158,9 +196,12 @@ export function Game({
   const foundCountRef = useRef(0);
   const undoTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingWrongRef = useRef(false);
+  const wrongAttemptsRef = useRef(0);
+  const finalTimeRef = useRef(0);
   const dailyDate = todayString();
 
   foundCountRef.current = foundWords.size;
+  wrongAttemptsRef.current = wrongAttempts;
 
   useEffect(() => {
     const mq = window.matchMedia('(orientation: landscape) and (max-height: 520px)');
@@ -222,7 +263,21 @@ export function Game({
 
   const finishGame = useCallback(
     (wordsFoundCount: number, timeUp = false) => {
+      // Commit any pending miss so flawless / stats stay consistent
+      let misses = wrongAttemptsRef.current;
+      if (pendingWrongRef.current) {
+        misses += 1;
+        pendingWrongRef.current = false;
+        if (undoTimeoutRef.current) {
+          clearTimeout(undoTimeoutRef.current);
+          undoTimeoutRef.current = null;
+        }
+        setWrongAttempts(misses);
+        setShowUndo(false);
+      }
+
       const timeMs = isBlitz ? BLITZ_DURATION_MS : Math.max(0, Date.now() - startTime.current);
+      finalTimeRef.current = timeMs;
       setElapsed(timeMs);
       setProgressSweep(true);
       setTimeout(() => {
@@ -232,7 +287,7 @@ export function Game({
       setCompletionMsg(
         isBlitz
           ? getBlitzEndMessage(wordsFoundCount, blitzHighScore)
-          : getCompletionMessage(wrongAttempts, timeMs),
+          : getCompletionMessage(misses, timeMs),
       );
       playCompleteSound(soundSettings, wordsFoundCount);
 
@@ -240,11 +295,11 @@ export function Game({
         id: `${Date.now()}`,
         category,
         mode,
-        gridSize: settings.gridSize,
+        gridSize,
         wordCount: isBlitz ? wordsFoundCount : puzzle.words.length,
         wordsFound: wordsFoundCount,
         timeMs,
-        wrongAttempts,
+        wrongAttempts: misses,
         completedAt: Date.now(),
         isDaily,
         ...(isPack ? { packId, packLevel } : {}),
@@ -256,9 +311,8 @@ export function Game({
     [
       isBlitz,
       blitzHighScore,
-      wrongAttempts,
       soundSettings,
-      settings.gridSize,
+      gridSize,
       category,
       mode,
       puzzle.words.length,
@@ -344,18 +398,22 @@ export function Game({
   );
 
   const handleWrong = useCallback(() => {
+    // Only one pending miss at a time; committed misses counted only at game end
     if (pendingWrongRef.current) return;
     pendingWrongRef.current = true;
     setShowUndo(true);
 
     undoTimeoutRef.current = setTimeout(() => {
-      setWrongAttempts((w) => w + 1);
-      onWrongAttempt();
+      setWrongAttempts((w) => {
+        const next = w + 1;
+        wrongAttemptsRef.current = next;
+        return next;
+      });
       setShowUndo(false);
       pendingWrongRef.current = false;
       undoTimeoutRef.current = null;
     }, UNDO_DELAY_MS);
-  }, [onWrongAttempt]);
+  }, []);
 
   const handleUndo = useCallback(() => {
     if (undoTimeoutRef.current) {
@@ -364,8 +422,7 @@ export function Game({
     }
     setShowUndo(false);
     pendingWrongRef.current = false;
-    onUndoWrong?.();
-  }, [onUndoWrong]);
+  }, []);
 
   const useHint = useCallback(() => {
     if (hintUsed || completed) return;
@@ -574,7 +631,14 @@ export function Game({
           onShare={isDaily ? () => setShowShare(true) : undefined}
           onCopyChallenge={
             !isDaily && !isPack
-              ? () => navigator.clipboard.writeText(generateChallengeUrl(seed, category))
+              ? async () => {
+                  const url = generateChallengeUrl(seed, category, {
+                    gridSize,
+                    wordCount: puzzle.words.length,
+                    options: puzzleOptions,
+                  });
+                  await navigator.clipboard.writeText(url);
+                }
               : undefined
           }
           onPlayAgain={canShuffle ? handleNewLayout : undefined}
@@ -601,8 +665,8 @@ export function Game({
             mode,
             gridSize,
             wordCount: puzzle.words.length,
-            timeMs: Date.now() - startTime.current,
-            wrongAttempts,
+            timeMs: finalTimeRef.current || elapsed,
+            wrongAttempts: wrongAttemptsRef.current,
             completedAt: Date.now(),
             isDaily: true,
           }}

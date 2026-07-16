@@ -100,6 +100,19 @@ function rollWeek(stats: Stats): Stats {
 export function recordGameCompletion(stats: Stats, record: GameRecord): Stats {
   let s = rollWeek(stats);
 
+  // Don't re-count the same daily on the same local day
+  if (record.isDaily) {
+    const day = new Date(record.completedAt);
+    const y = day.getFullYear();
+    const m = String(day.getMonth() + 1).padStart(2, '0');
+    const d = String(day.getDate()).padStart(2, '0');
+    const dateStr = `${y}-${m}-${d}`;
+    if (stats.completedDailyDates.includes(dateStr) && stats.lastDailyDate === dateStr) {
+      // Still allow streak helper to no-op; skip duplicate completion stats
+      return s;
+    }
+  }
+
   const bestKey = record.isDaily ? 'overall' : record.category;
   const prevBest = s.bestTimes[bestKey];
   const newBestTimes = { ...s.bestTimes };

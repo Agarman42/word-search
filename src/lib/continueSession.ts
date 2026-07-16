@@ -36,5 +36,5 @@ export function getContinueSession(stats: Stats, settings: Settings): ContinueSe
 
 export function getContinueLabel(session: ContinueSession): string {
   const cat = getCategory(session.category);
-  return `${cat.name} · ${session.difficultyLabel}`;
+  return `Play ${cat.name} again · ${session.difficultyLabel}`;
 }

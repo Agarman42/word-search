@@ -120,14 +120,23 @@ export function Home({
               {!dailyCompleted && <span className="btn-arrow">→</span>}
             </button>
 
-            {continueSession ? (
+            {dailyCompleted ? (
+              <button className="btn btn-glass btn-large" onClick={onPlay}>
+                <span className="btn-icon-wrap"><IconPlay size={18} /></span>
+                <span className="btn-text">
+                  <span className="btn-label">Browse puzzles</span>
+                  <span className="btn-sublabel">Categories, packs & atlas</span>
+                </span>
+                <span className="btn-arrow">→</span>
+              </button>
+            ) : continueSession ? (
               <button
                 className="btn btn-glass btn-large home-continue-btn"
                 onClick={() => onContinue(continueSession.category)}
               >
                 <span className="btn-icon-wrap"><IconContinue size={18} /></span>
                 <span className="btn-text">
-                  <span className="btn-label">Continue</span>
+                  <span className="btn-label">Play again</span>
                   <span className="btn-sublabel">
                     {getContinueLabel(continueSession)} · {continueSession.completedAgo}
                   </span>
@@ -137,7 +146,7 @@ export function Home({
               <button className="btn btn-glass btn-large" onClick={onPlay}>
                 <span className="btn-icon-wrap"><IconPlay size={18} /></span>
                 <span className="btn-text">
-                  <span className="btn-label">Browse Puzzles</span>
+                  <span className="btn-label">Browse puzzles</span>
                   <span className="btn-sublabel">Categories, packs & atlas</span>
                 </span>
                 <span className="btn-arrow">→</span>
@@ -174,7 +183,7 @@ export function Home({
             <span className="quick-link-icon" style={{ '--qc': '#db2777' } as React.CSSProperties}>
               <IconTrophy size={22} />
             </span>
-            <span className="quick-link-label">Awards</span>
+            <span className="quick-link-label">Achievements</span>
           </button>
         </div>
 

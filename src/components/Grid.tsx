@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { CategoryId, Cell, PlacedWord, Settings } from '../types';
 import { cellKey, findMatchingWord, getLineCells, getRevealCells } from '../lib/gameLogic';
 import { getCategoryFoundColor } from '../lib/categoryThemes';
@@ -58,14 +58,26 @@ export function Grid({
   const gridSize = grid.length;
   const gridRef = useRef<HTMLDivElement>(null);
   const [selecting, setSelecting] = useState(false);
-  const [startCell, setStartCell] = useState<Cell | null>(null);
   const [currentCells, setCurrentCells] = useState<Cell[]>([]);
   const [revealAnim, setRevealAnim] = useState<RevealAnim | null>(null);
   const [shaking, setShaking] = useState(false);
   const [wrongFlash, setWrongFlash] = useState<Cell[]>([]);
   const [popWord, setPopWord] = useState<string | null>(null);
   const pointerIdRef = useRef<number | null>(null);
+  const startCellRef = useRef<Cell | null>(null);
+  const currentCellsRef = useRef<Cell[]>([]);
+  const revealTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const sound = soundFromSettings(settings);
+
+  useEffect(() => {
+    return () => {
+      revealTimersRef.current.forEach((t) => {
+        clearTimeout(t as ReturnType<typeof setTimeout>);
+        clearInterval(t as ReturnType<typeof setInterval>);
+      });
+      revealTimersRef.current = [];
+    };
+  }, []);
 
   const getCellFromPoint = useCallback(
     (clientX: number, clientY: number): Cell | null => {
@@ -100,7 +112,8 @@ export function Grid({
 
       tick(0);
       setPopWord(word.word);
-      setTimeout(() => setPopWord(null), 400);
+      const popTimer = setTimeout(() => setPopWord(null), 400);
+      revealTimersRef.current.push(popTimer);
 
       let step = 1;
       const interval = setInterval(() => {
@@ -109,12 +122,14 @@ export function Grid({
           step++;
         } else {
           clearInterval(interval);
-          setTimeout(() => {
+          const doneTimer = setTimeout(() => {
             setRevealAnim(null);
             onDone();
           }, 80);
+          revealTimersRef.current.push(doneTimer);
         }
       }, tickMs);
+      revealTimersRef.current.push(interval);
     },
     [settings.reduceMotion, sound, category, foundWords.size],
   );
@@ -126,17 +141,20 @@ export function Grid({
     e.preventDefault();
     gridRef.current?.setPointerCapture(e.pointerId);
     pointerIdRef.current = e.pointerId;
+    startCellRef.current = cell;
+    currentCellsRef.current = [cell];
     setSelecting(true);
-    setStartCell(cell);
     setCurrentCells([cell]);
     triggerHaptic(settings.haptics, 'light');
   };
 
   const handlePointerMove = (e: React.PointerEvent) => {
-    if (!selecting || !startCell || pointerIdRef.current !== e.pointerId) return;
+    if (!selecting || !startCellRef.current || pointerIdRef.current !== e.pointerId) return;
     const cell = getCellFromPoint(e.clientX, e.clientY);
     if (!cell) return;
-    setCurrentCells(getLineCells(startCell, cell, gridSize));
+    const path = getLineCells(startCellRef.current, cell, gridSize);
+    currentCellsRef.current = path;
+    setCurrentCells(path);
   };
 
   const handlePointerUp = (e: React.PointerEvent) => {
@@ -145,7 +163,8 @@ export function Grid({
     pointerIdRef.current = null;
     setSelecting(false);
 
-    const matchedCells = [...currentCells];
+    // Use ref so fast swipes don't resolve a stale React state path
+    const matchedCells = [...currentCellsRef.current];
     const foundSet = new Set(foundWords.keys());
     const match = findMatchingWord(grid, matchedCells, placedWords, foundSet);
 
@@ -162,12 +181,14 @@ export function Grid({
       triggerHaptic(settings.haptics, 'light');
       setShaking(true);
       setWrongFlash([...matchedCells]);
-      setTimeout(() => setShaking(false), 320);
-      setTimeout(() => setWrongFlash([]), 360);
+      const t1 = setTimeout(() => setShaking(false), 320);
+      const t2 = setTimeout(() => setWrongFlash([]), 360);
+      revealTimersRef.current.push(t1, t2);
       onWrongAttempt();
     }
 
-    setStartCell(null);
+    startCellRef.current = null;
+    currentCellsRef.current = [];
     setCurrentCells([]);
   };
 

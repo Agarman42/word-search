@@ -1,5 +1,6 @@
-const INSTALL_DISMISS_KEY = 'lexis-install-dismissed';
+const INSTALL_DISMISS_KEY = 'lexis-install-dismissed-at';
 const COMPLETE_NUDGE_DISMISS_KEY = 'lexis-install-complete-nudge';
+const DISMISS_TTL_MS = 14 * 24 * 60 * 60 * 1000; // 14 days
 
 export function isStandaloneMode(): boolean {
   if (typeof window === 'undefined') return false;
@@ -19,7 +20,20 @@ export function isIOS(): boolean {
 
 export function isInstallDismissed(): boolean {
   try {
-    return localStorage.getItem(INSTALL_DISMISS_KEY) === '1';
+    // Legacy permanent dismiss
+    if (localStorage.getItem('lexis-install-dismissed') === '1') {
+      localStorage.removeItem('lexis-install-dismissed');
+      localStorage.setItem(INSTALL_DISMISS_KEY, String(Date.now()));
+    }
+    const raw = localStorage.getItem(INSTALL_DISMISS_KEY);
+    if (!raw) return false;
+    const at = Number(raw);
+    if (!Number.isFinite(at)) return false;
+    if (Date.now() - at > DISMISS_TTL_MS) {
+      localStorage.removeItem(INSTALL_DISMISS_KEY);
+      return false;
+    }
+    return true;
   } catch {
     return false;
   }
@@ -27,7 +41,7 @@ export function isInstallDismissed(): boolean {
 
 export function dismissInstallPrompt(): void {
   try {
-    localStorage.setItem(INSTALL_DISMISS_KEY, '1');
+    localStorage.setItem(INSTALL_DISMISS_KEY, String(Date.now()));
   } catch {
     /* ignore */
   }

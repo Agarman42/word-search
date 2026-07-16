@@ -41,7 +41,7 @@ export function PuzzlePacks({ stats, onSelectPack, embedded }: PuzzlePacksProps)
         const progress = stats.packProgress[pack.id] ?? 0;
         const pct = Math.round((progress / pack.puzzleCount) * 100);
         const complete = progress >= pack.puzzleCount;
-        const nextLevel = Math.min(progress, pack.puzzleCount - 1);
+        const nextLevel = complete ? 0 : Math.min(progress, pack.puzzleCount - 1);
 
         return (
           <button
@@ -51,8 +51,7 @@ export function PuzzlePacks({ stats, onSelectPack, embedded }: PuzzlePacksProps)
               '--pack-color': pack.color,
               '--pack-cover': pack.coverGradient,
             } as React.CSSProperties}
-            onClick={() => !complete && onSelectPack(pack.id, nextLevel, pack.category)}
-            disabled={complete}
+            onClick={() => onSelectPack(pack.id, nextLevel, pack.category)}
           >
             <div className="pack-cover-art">
               <span className="pack-cover-emoji">{pack.icon}</span>
@@ -64,7 +63,9 @@ export function PuzzlePacks({ stats, onSelectPack, embedded }: PuzzlePacksProps)
               <div className="pack-cover-footer">
                 <PackProgressArc pct={pct} color={pack.color} />
                 <span className="pack-cover-progress">
-                  {complete ? 'Complete ✓' : `${progress}/${pack.puzzleCount} levels`}
+                  {complete
+                    ? 'Complete — tap to replay'
+                    : `${progress}/${pack.puzzleCount} levels`}
                 </span>
               </div>
             </div>

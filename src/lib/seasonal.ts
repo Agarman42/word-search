@@ -19,6 +19,26 @@ export type SeasonalPlayTarget =
 
 export const SEASONAL_EVENTS: SeasonalEvent[] = [
   {
+    id: 'new-year',
+    name: 'Fresh Start',
+    icon: '✨',
+    description: 'New year energy — explore science discoveries.',
+    color: '#a78bfa',
+    months: [1],
+    play: { type: 'category', category: 'science' },
+    ctaLabel: 'Play Science',
+  },
+  {
+    id: 'hearts',
+    name: 'Heart Month',
+    icon: '💕',
+    description: 'Sweet finds — play a music-themed puzzle.',
+    color: '#fb7185',
+    months: [2],
+    play: { type: 'category', category: 'music' },
+    ctaLabel: 'Play Music',
+  },
+  {
     id: 'spring',
     name: 'Spring Bloom',
     icon: '🌸',
@@ -39,6 +59,16 @@ export const SEASONAL_EVENTS: SeasonalEvent[] = [
     ctaLabel: 'Start quest',
   },
   {
+    id: 'back-to-school',
+    name: 'Back to School',
+    icon: '📚',
+    description: 'September pages — dive into bookish word hunts.',
+    color: '#f59e0b',
+    months: [9],
+    play: { type: 'category', category: 'books' },
+    ctaLabel: 'Play Books',
+  },
+  {
     id: 'halloween',
     name: 'Spooky Search',
     icon: '🎃',
@@ -47,6 +77,16 @@ export const SEASONAL_EVENTS: SeasonalEvent[] = [
     months: [10],
     play: { type: 'category', category: 'holiday' },
     ctaLabel: 'Play Holiday',
+  },
+  {
+    id: 'gratitude',
+    name: 'Harvest Hunt',
+    icon: '🍂',
+    description: 'November thanks — food-themed word feasts.',
+    color: '#ea580c',
+    months: [11],
+    play: { type: 'category', category: 'food' },
+    ctaLabel: 'Play Food',
   },
   {
     id: 'holiday',

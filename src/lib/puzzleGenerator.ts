@@ -17,6 +17,8 @@ const BACKWARD_DIRS: { dr: number; dc: number; name: string }[] = [
 ];
 
 const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+const MAX_ATTEMPTS = 120;
+const MAX_DEPTH = 8;
 
 function getDirections(allowBackwards: boolean) {
   return allowBackwards ? [...FORWARD_DIRS, ...BACKWARD_DIRS] : FORWARD_DIRS;
@@ -65,26 +67,40 @@ function fillEmpty(grid: (string | null)[][], rng: () => number): string[][] {
   );
 }
 
-export function generatePuzzle(
+function clampOptions(gridSize: number, options: PuzzleOptions): PuzzleOptions {
+  const maxLen = Math.min(options.maxWordLength, gridSize);
+  const minLen = Math.min(options.minWordLength, maxLen);
+  return {
+    ...options,
+    minWordLength: Math.max(3, minLen),
+    maxWordLength: Math.max(3, maxLen),
+  };
+}
+
+function tryPlace(
   category: CategoryId,
   gridSize: number,
   wordCount: number,
   seed: string,
-  options: PuzzleOptions = { allowBackwards: false, minWordLength: 3, maxWordLength: 15 },
-): Puzzle {
+  options: PuzzleOptions,
+): Puzzle | null {
+  const clamped = clampOptions(gridSize, options);
   const rng = createRng(seed);
   const words = getWordsForCategory(
     category,
     wordCount,
     rng,
-    options.minWordLength,
-    options.maxWordLength,
+    clamped.minWordLength,
+    clamped.maxWordLength,
   );
-  const sortedWords = [...words].sort((a, b) => b.length - a.length);
-  const directions = getDirections(options.allowBackwards);
+  if (words.length === 0) return null;
 
-  const maxAttempts = 200;
-  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+  const sortedWords = [...words].sort((a, b) => b.length - a.length);
+  const directions = getDirections(clamped.allowBackwards);
+
+  let best: { grid: (string | null)[][]; placed: PlacedWord[] } | null = null;
+
+  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
     const attemptRng = createRng(`${seed}-attempt-${attempt}`);
     const grid: (string | null)[][] = Array.from({ length: gridSize }, () =>
       Array(gridSize).fill(null),
@@ -120,6 +136,10 @@ export function generatePuzzle(
       if (!placedWord) break;
     }
 
+    if (!best || placed.length > best.placed.length) {
+      best = { grid, placed };
+    }
+
     if (placed.length === sortedWords.length) {
       const fillRng = createRng(`${seed}-fill-${attempt}`);
       return {
@@ -132,15 +152,81 @@ export function generatePuzzle(
     }
   }
 
+  // Accept partial placement if we got most words
+  if (best && best.placed.length >= Math.max(4, Math.floor(sortedWords.length * 0.7))) {
+    const fillRng = createRng(`${seed}-fill-partial`);
+    return {
+      grid: fillEmpty(best.grid, fillRng),
+      words: best.placed,
+      category,
+      seed,
+      gridSize,
+    };
+  }
+
+  return null;
+}
+
+export function generatePuzzle(
+  category: CategoryId,
+  gridSize: number,
+  wordCount: number,
+  seed: string,
+  options: PuzzleOptions = { allowBackwards: false, minWordLength: 3, maxWordLength: 15 },
+  depth = 0,
+): Puzzle {
+  const clamped = clampOptions(gridSize, options);
+  const result = tryPlace(category, gridSize, wordCount, seed, clamped);
+  if (result) return result;
+
+  if (depth >= MAX_DEPTH) {
+    // Last resort: fewer, shorter words
+    const fallback = tryPlace(
+      category,
+      gridSize,
+      Math.max(4, Math.min(wordCount, 6)),
+      `${seed}-fallback`,
+      {
+        allowBackwards: false,
+        minWordLength: 3,
+        maxWordLength: Math.min(gridSize, 6),
+      },
+    );
+    if (fallback) return fallback;
+
+    // Empty-safe minimal puzzle
+    const rng = createRng(`${seed}-empty`);
+    const grid = fillEmpty(
+      Array.from({ length: gridSize }, () => Array(gridSize).fill(null)),
+      rng,
+    );
+    return { grid, words: [], category, seed, gridSize };
+  }
+
   return generatePuzzle(
     category,
     gridSize,
-    Math.max(6, wordCount - 2),
-    `${seed}-retry`,
-    options,
+    Math.max(4, wordCount - 2),
+    `${seed}-retry-${depth}`,
+    {
+      ...clamped,
+      maxWordLength: Math.max(3, clamped.maxWordLength - 1),
+    },
+    depth + 1,
   );
 }
 
 export function getDailySeed(date: string): string {
   return `daily-${date}`;
 }
+
+/** Fixed options so every player gets the same daily board. */
+export const DAILY_PUZZLE_CONFIG = {
+  gridSize: 10,
+  wordCount: 12,
+  options: {
+    allowBackwards: false,
+    minWordLength: 4,
+    maxWordLength: 8,
+  } satisfies PuzzleOptions,
+};

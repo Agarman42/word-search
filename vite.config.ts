@@ -4,8 +4,16 @@ import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import pkg from './package.json';
 
-if (!globalThis.crypto) {
-  globalThis.crypto = webcrypto as Crypto;
+// Node 18 + workbox need Web Crypto for SW generation
+const cryptoPolyfill = webcrypto as Crypto;
+for (const g of [globalThis, global] as Record<string, unknown>[]) {
+  if (!(g as { crypto?: Crypto }).crypto?.getRandomValues) {
+    Object.defineProperty(g, 'crypto', {
+      value: cryptoPolyfill,
+      configurable: true,
+      writable: true,
+    });
+  }
 }
 
 export default defineConfig({
@@ -50,7 +58,8 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
-        mode: 'development',
+        // Production SW needs Web Crypto (Node 20+). Local Node 18 falls back safely.
+        mode: Number(process.versions.node.split('.')[0]) >= 20 ? 'production' : 'development',
       },
     }),
   ],

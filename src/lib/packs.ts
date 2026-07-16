@@ -116,7 +116,7 @@ export const PUZZLE_PACKS: PuzzlePack[] = [
     id: 'long-words',
     name: 'Long Words',
     icon: '📏',
-    description: 'Epic-length vocabulary — 10 big hunts',
+    description: '8–15 letter science words — 10 epic hunts',
     category: 'science',
     color: '#7c3aed',
     coverGradient: 'linear-gradient(135deg, #5b21b6 0%, #a78bfa 50%, #7c3aed 100%)',

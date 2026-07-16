@@ -2273,7 +2273,8 @@ html.theme-dark .seasonal-desc { color: var(--text-muted); }
 }
 
 .atlas-node.explored { box-shadow: 0 0 16px color-mix(in srgb, var(--node-color) 40%, transparent); }
-.atlas-node.locked { opacity: 0.45; border-style: dashed; }
+.atlas-node.locked,
+.atlas-node.unexplored { opacity: 0.55; border-style: dashed; }
 .atlas-node:hover { transform: translate(-50%, -50%) scale(1.15); }
 
 .atlas-node-icon { font-size: 1.2rem; }
@@ -3689,8 +3690,10 @@ html.theme-dark .grid-frame::after { display: none; }
   opacity: 0.35;
 }
 
-.atlas-node.locked .atlas-node-icon { opacity: 0.35; filter: grayscale(1); }
-.atlas-node.locked { opacity: 0.7; }
+.atlas-node.locked .atlas-node-icon,
+.atlas-node.unexplored .atlas-node-icon { opacity: 0.4; filter: grayscale(0.6); }
+.atlas-node.locked,
+.atlas-node.unexplored { opacity: 0.75; }
 
 .atlas-node-tier {
   font-size: 8px;
@@ -4166,6 +4169,17 @@ html.theme-dark .home-streak-pill {
     border-left: 1px solid var(--border);
     border-right: 1px solid var(--border);
   }
+}
+
+/* Focus visibility (keyboard / a11y) */
+:focus-visible {
+  outline: 2px solid var(--accent, #7c3aed);
+  outline-offset: 2px;
+}
+
+button:focus:not(:focus-visible),
+a:focus:not(:focus-visible) {
+  outline: none;
 }
 
 /* ── v1.7 polish ── */

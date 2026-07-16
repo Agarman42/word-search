@@ -13,6 +13,17 @@ export function createRng(seed: string): () => number {
   };
 }
 
-export function todayString(): string {
-  return new Date().toISOString().slice(0, 10);
+/** Local calendar date YYYY-MM-DD (not UTC). */
+export function todayString(date: Date = new Date()): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+/** Shift a local YYYY-MM-DD by delta days. */
+export function addDaysToDateString(dateStr: string, delta: number): string {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const dt = new Date(y, m - 1, d + delta);
+  return todayString(dt);
 }

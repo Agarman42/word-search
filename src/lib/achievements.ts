@@ -1,6 +1,7 @@
 import type { Achievement, CategoryId, GameRecord, Stats } from '../types';
 import { PUZZLE_PACKS } from './packs';
-import { todayString } from './rng';
+import { addDaysToDateString, todayString } from './rng';
+import { CATEGORIES } from './wordLists';
 
 export const ACHIEVEMENT_DEFS: Omit<Achievement, 'unlockedAt'>[] = [
   { id: 'first_word', title: 'First Find', description: 'Discover your first word', icon: '✨' },
@@ -66,7 +67,7 @@ export function checkAchievements(
   if (stats.completedDailyDates.length >= 7) unlock('daily_7');
   if (stats.totalPlayTimeMs >= 3600000) unlock('marathon');
 
-  const allCategories: CategoryId[] = ['animals', 'food', 'sports', 'movies', 'geography', 'kids', 'holiday'];
+  const allCategories: CategoryId[] = CATEGORIES.map((c) => c.id);
   if (allCategories.every((c) => (stats.categoryCompletions[c] ?? 0) >= 1)) {
     unlock('all_categories');
   }
@@ -88,7 +89,8 @@ export function checkAchievements(
   if (masteryTiers.some((t) => t === 'gold' || t === 'diamond')) unlock('mastery_gold');
 
   if (lastGame) {
-    if (lastGame.wrongAttempts === 0) unlock('perfect');
+    // Flawless only for non-blitz full clears
+    if (lastGame.wrongAttempts === 0 && lastGame.mode !== 'blitz') unlock('perfect');
     if (lastGame.gridSize >= 15) unlock('grid_15');
     if (lastGame.mode === 'zen') unlock('zen_complete');
     if (lastGame.mode === 'coop') unlock('coop_complete');
@@ -113,9 +115,7 @@ export function updateDailyStreak(stats: Stats): Stats {
   const today = todayString();
   if (stats.lastDailyDate === today) return stats;
 
-  const yesterday = new Date();
-  yesterday.setDate(yesterday.getDate() - 1);
-  const yesterdayStr = yesterday.toISOString().slice(0, 10);
+  const yesterdayStr = addDaysToDateString(today, -1);
 
   let streak = 1;
   if (stats.lastDailyDate === yesterdayStr) {

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { Achievement } from '../types';
 import { formatTime } from '../lib/gameLogic';
 import { APP_NAME } from '../lib/brand';
@@ -21,7 +22,7 @@ interface GameCompleteProps {
   onInstall?: () => void;
   onDismissInstall?: () => void;
   onShare?: () => void;
-  onCopyChallenge?: () => void;
+  onCopyChallenge?: () => void | Promise<void>;
   onPlayAgain?: () => void;
   playAgainLabel?: string;
   onContinue: () => void;
@@ -51,7 +52,15 @@ export function GameComplete({
   continueLabel = 'Continue',
   onMainMenu,
 }: GameCompleteProps) {
+  const [challengeCopied, setChallengeCopied] = useState(false);
   const headline = isBlitz ? 'Blitz complete!' : 'You found them all!';
+
+  const handleCopyChallenge = async () => {
+    if (!onCopyChallenge) return;
+    await onCopyChallenge();
+    setChallengeCopied(true);
+    setTimeout(() => setChallengeCopied(false), 2000);
+  };
 
   return (
     <div className="game-complete-overlay">
@@ -127,8 +136,8 @@ export function GameComplete({
             </button>
           )}
           {!isDaily && !isPack && onCopyChallenge && (
-            <button className="btn btn-glass btn-complete-secondary" onClick={onCopyChallenge}>
-              Copy challenge link
+            <button className="btn btn-glass btn-complete-secondary" onClick={handleCopyChallenge}>
+              {challengeCopied ? 'Copied!' : 'Copy challenge link'}
             </button>
           )}
           {!isDaily && onPlayAgain && (

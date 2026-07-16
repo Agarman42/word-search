@@ -19,7 +19,7 @@ export function computeMasteryTier(completions: number): MasteryTier {
   for (const { tier, completions: min } of TIER_THRESHOLDS) {
     if (completions >= min) return tier;
   }
-  return completions > 0 ? 'bronze' : 'none';
+  return 'none';
 }
 
 export function updateCategoryMastery(stats: Stats, category: CategoryId): Stats {
@@ -34,15 +34,17 @@ export function updateCategoryMastery(stats: Stats, category: CategoryId): Stats
 
 export function getMasteryProgress(completions: number): { tier: MasteryTier; next: MasteryTier | null; progress: number } {
   const tier = computeMasteryTier(completions);
-  const tiers = ['none', 'bronze', 'silver', 'gold', 'diamond'] as MasteryTier[];
-  const idx = tiers.indexOf(tier);
-  const next = idx < tiers.length - 1 ? tiers[idx + 1] : null;
-  const currentMin = TIER_THRESHOLDS.find((t) => t.tier === tier)?.completions ?? 0;
-  const nextMin = next
-    ? TIER_THRESHOLDS.find((t) => t.tier === next)?.completions ?? currentMin + 1
-    : currentMin;
-  const progress = next
-    ? Math.min(100, ((completions - currentMin) / (nextMin - currentMin)) * 100)
-    : 100;
+  if (tier === 'diamond') {
+    return { tier, next: null, progress: 100 };
+  }
+  const nextThresholds: Record<MasteryTier, { next: MasteryTier; min: number; floor: number }> = {
+    none: { next: 'bronze', min: 3, floor: 0 },
+    bronze: { next: 'silver', min: 10, floor: 3 },
+    silver: { next: 'gold', min: 25, floor: 10 },
+    gold: { next: 'diamond', min: 50, floor: 25 },
+    diamond: { next: 'diamond', min: 50, floor: 50 },
+  };
+  const { next, min, floor } = nextThresholds[tier];
+  const progress = Math.min(100, Math.max(0, ((completions - floor) / (min - floor)) * 100));
   return { tier, next, progress };
 }
