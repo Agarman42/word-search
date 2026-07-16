@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import type { Achievement } from '../types';
+import type { Achievement, CategoryId } from '../types';
 import { formatTime } from '../lib/gameLogic';
 import { APP_NAME } from '../lib/brand';
 import type { InstallMode } from '../lib/install';
-import { AchievementIcon, IconDiamond, IconTrophy } from './Icons';
+import { AchievementIcon, CategoryIcon, IconDiamond, IconTrophy } from './Icons';
 import { CountUp } from './CountUp';
 import { InstallPrompt } from './InstallPrompt';
 
@@ -17,6 +17,8 @@ interface GameCompleteProps {
   newAchievement?: Achievement | null;
   isDaily: boolean;
   isPack: boolean;
+  category?: CategoryId;
+  confettiColors?: string[];
   showInstallNudge?: boolean;
   installMode?: InstallMode | null;
   onInstall?: () => void;
@@ -40,6 +42,8 @@ export function GameComplete({
   newAchievement,
   isDaily,
   isPack,
+  category,
+  confettiColors,
   showInstallNudge,
   installMode,
   onInstall,
@@ -65,17 +69,35 @@ export function GameComplete({
   return (
     <div className="game-complete-overlay">
       <div className="confetti" aria-hidden="true">
-        {Array.from({ length: 28 }).map((_, i) => (
-          <span key={i} className="confetti-piece" style={{ '--i': i } as React.CSSProperties} />
-        ))}
+        {Array.from({ length: 28 }).map((_, i) => {
+          const colors = confettiColors?.length
+            ? confettiColors
+            : ['#7c3aed', '#0891b2', '#f59e0b', '#ec4899', '#22c55e'];
+          const color = colors[i % colors.length];
+          return (
+            <span
+              key={i}
+              className="confetti-piece"
+              style={{ '--i': i, '--confetti-color': color } as React.CSSProperties}
+            />
+          );
+        })}
       </div>
 
       <div className="game-complete-card">
         <div className="complete-hero">
           <div className="complete-check-ring">
-            <IconTrophy size={32} className="complete-check-icon" />
+            {isPerfect ? (
+              <IconDiamond size={32} className="complete-check-icon" />
+            ) : category ? (
+              <CategoryIcon id={category} size={32} className="complete-check-icon" />
+            ) : (
+              <IconTrophy size={32} className="complete-check-icon" />
+            )}
           </div>
-          <p className="complete-eyebrow">{isBlitz ? 'Time\'s up' : 'Puzzle solved'}</p>
+          <p className="complete-eyebrow">
+            {isBlitz ? "Time's up" : isDaily ? 'Daily complete' : isPack ? 'Level clear' : 'Puzzle solved'}
+          </p>
           <h2 className="complete-headline">{headline}</h2>
           <p className="complete-message">{completionMsg}</p>
         </div>

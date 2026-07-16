@@ -1,8 +1,14 @@
 import { useState } from 'react';
-import type { GameRecord } from '../types';
+import type { GameRecord, PuzzleOptions } from '../types';
 import { APP_NAME } from '../lib/brand';
 import { formatTime } from '../lib/gameLogic';
-import { copyToClipboard, generateChallengeUrl, generateShareText, shareOrCopy } from '../lib/share';
+import {
+  copyToClipboard,
+  generateChallengeUrl,
+  generateShareText,
+  shareOrCopy,
+} from '../lib/share';
+import { renderShareImage } from '../lib/shareImage';
 import { IconSpark, IconStreak } from './Icons';
 
 interface ShareCardProps {
@@ -10,6 +16,11 @@ interface ShareCardProps {
   dailyNumber?: number;
   seed: string;
   streak?: number;
+  challengeExtras?: {
+    gridSize: number;
+    wordCount: number;
+    options: PuzzleOptions;
+  };
   onClose: () => void;
 }
 
@@ -29,31 +40,64 @@ function ShareGridPreview({ size = 5 }: { size?: number }) {
   );
 }
 
-export function ShareCard({ record, dailyNumber, seed, streak = 0, onClose }: ShareCardProps) {
-  const [copied, setCopied] = useState<'share' | 'link' | 'shared' | null>(null);
+export function ShareCard({
+  record,
+  dailyNumber,
+  seed,
+  streak = 0,
+  challengeExtras,
+  onClose,
+}: ShareCardProps) {
+  const [status, setStatus] = useState<string | null>(null);
   const shareText = generateShareText(record, dailyNumber);
-  const challengeUrl = generateChallengeUrl(seed, record.category);
+  const challengeUrl = generateChallengeUrl(seed, record.category, challengeExtras);
   const flawless = record.wrongAttempts === 0;
 
-  const copy = async (text: string, type: 'share' | 'link') => {
-    if (type === 'share') {
-      const result = await shareOrCopy(text);
-      if (result === 'shared') {
-        setCopied('shared');
-        setTimeout(() => setCopied(null), 2000);
-        return;
+  const flash = (msg: string) => {
+    setStatus(msg);
+    setTimeout(() => setStatus(null), 2200);
+  };
+
+  const shareTextResult = async () => {
+    const result = await shareOrCopy(shareText);
+    flash(result === 'shared' ? 'Shared!' : result === 'copied' ? 'Copied!' : 'Could not share');
+  };
+
+  const shareImage = async () => {
+    const blob = await renderShareImage(record, dailyNumber, streak);
+    if (blob && typeof navigator !== 'undefined' && navigator.share && navigator.canShare) {
+      try {
+        const file = new File([blob], 'wordseek-daily.png', { type: 'image/png' });
+        if (navigator.canShare({ files: [file] })) {
+          await navigator.share({
+            files: [file],
+            title: APP_NAME,
+            text: shareText,
+          });
+          flash('Shared!');
+          return;
+        }
+      } catch {
+        /* fall through */
       }
-      if (result === 'copied') {
-        setCopied('share');
-        setTimeout(() => setCopied(null), 2000);
-      }
+    }
+    // Fallback: download
+    if (blob) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'wordseek-daily.png';
+      a.click();
+      URL.revokeObjectURL(url);
+      flash('Image saved!');
       return;
     }
-    const ok = await copyToClipboard(text);
-    if (ok) {
-      setCopied(type);
-      setTimeout(() => setCopied(null), 2000);
-    }
+    await shareTextResult();
+  };
+
+  const copyLink = async () => {
+    const ok = await copyToClipboard(challengeUrl);
+    flash(ok ? 'Link copied!' : 'Copy failed');
   };
 
   return (
@@ -98,12 +142,16 @@ export function ShareCard({ record, dailyNumber, seed, streak = 0, onClose }: Sh
 
         <h3 id="share-card-title">Share your result</h3>
         <pre className="share-preview">{shareText}</pre>
+        {status && <p className="share-status">{status}</p>}
         <div className="share-actions">
-          <button className="btn btn-primary btn-glow" onClick={() => copy(shareText, 'share')}>
-            {copied === 'shared' ? 'Shared!' : copied === 'share' ? 'Copied!' : 'Share result'}
+          <button className="btn btn-primary btn-glow" onClick={shareImage}>
+            Share image
           </button>
-          <button className="btn btn-glass" onClick={() => copy(challengeUrl, 'link')}>
-            {copied === 'link' ? 'Copied!' : 'Copy challenge link'}
+          <button className="btn btn-glass" onClick={shareTextResult}>
+            Share text
+          </button>
+          <button className="btn btn-glass" onClick={copyLink}>
+            Copy challenge link
           </button>
         </div>
         <button className="share-close" onClick={onClose}>

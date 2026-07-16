@@ -1,7 +1,13 @@
-import type { CategoryId, Settings, Stats } from '../types';
+import type { CategoryId, GameMode, Settings, Stats } from '../types';
 import { todayString } from '../lib/rng';
-import { getDailyCommentary, getDailyNumber, getDailyCategory } from '../lib/daily';
+import {
+  getDailyCommentary,
+  getDailyNumber,
+  getDailyCategory,
+  getTomorrowDateString,
+} from '../lib/daily';
 import { getContinueLabel, getContinueSession } from '../lib/continueSession';
+import { getPostDailyGoal } from '../lib/homeGoals';
 import { APP_NAME, APP_TAGLINE } from '../lib/brand';
 import { getCategory } from '../lib/wordLists';
 import { HomeBackground } from './HomeBackground';
@@ -33,6 +39,8 @@ interface HomeProps {
   onPacks: () => void;
   onWeekly: () => void;
   onAchievements: () => void;
+  onStartMode: (mode: GameMode) => void;
+  onPostDailyGoal: () => void;
   dailyCompleted: boolean;
   showDailyNudge: boolean;
   onDismissDailyNudge: () => void;
@@ -54,6 +62,8 @@ export function Home({
   onPacks,
   onWeekly,
   onAchievements,
+  onStartMode,
+  onPostDailyGoal,
   dailyCompleted,
   showDailyNudge,
   onDismissDailyNudge,
@@ -68,6 +78,9 @@ export function Home({
   const commentary = getDailyCommentary(today, dailyCat);
   const isNewPlayer = stats.totalPuzzlesCompleted === 0;
   const continueSession = getContinueSession(stats, settings);
+  const postDaily = dailyCompleted ? getPostDailyGoal(stats) : null;
+  const tomorrowCat = getCategory(getDailyCategory(getTomorrowDateString(today)));
+  const streakAtRisk = stats.dailyStreak >= 2 && !dailyCompleted;
 
   return (
     <div className="screen home-screen">
@@ -105,27 +118,33 @@ export function Home({
 
           <div className="home-hero-cta">
             <button
-              className={`btn btn-primary btn-large btn-glow btn-play-hero ${dailyCompleted ? 'pulse-soft' : ''}`}
+              className={`btn btn-primary btn-large btn-glow btn-play-hero ${dailyCompleted ? '' : 'pulse-soft'}`}
               onClick={onDaily}
             >
               <span className="btn-icon-wrap"><IconSpark size={20} /></span>
               <span className="btn-text">
                 <span className="btn-label">
-                  {dailyCompleted ? `Daily #${getDailyNumber(today)} — Done!` : `Play Daily #${getDailyNumber(today)}`}
+                  {dailyCompleted
+                    ? `Daily #${getDailyNumber(today)} — Done!`
+                    : `Play Daily #${getDailyNumber(today)}`}
                 </span>
                 <span className="btn-sublabel">
-                  {dailyCompleted ? 'Come back tomorrow' : commentary}
+                  {dailyCompleted
+                    ? `Tomorrow: ${tomorrowCat.name}`
+                    : commentary}
                 </span>
               </span>
               {!dailyCompleted && <span className="btn-arrow">→</span>}
             </button>
 
-            {dailyCompleted ? (
-              <button className="btn btn-glass btn-large" onClick={onPlay}>
-                <span className="btn-icon-wrap"><IconPlay size={18} /></span>
+            {dailyCompleted && postDaily ? (
+              <button className="btn btn-glass btn-large" onClick={onPostDailyGoal}>
+                <span className="btn-icon-wrap">
+                  {postDaily.type === 'pack' ? <IconPack size={18} /> : <IconPlay size={18} />}
+                </span>
                 <span className="btn-text">
-                  <span className="btn-label">Browse puzzles</span>
-                  <span className="btn-sublabel">Categories, packs & atlas</span>
+                  <span className="btn-label">{postDaily.label}</span>
+                  <span className="btn-sublabel">{postDaily.sublabel}</span>
                 </span>
                 <span className="btn-arrow">→</span>
               </button>
@@ -154,12 +173,34 @@ export function Home({
             )}
           </div>
 
-          {stats.dailyStreak > 0 && (
+          {streakAtRisk ? (
+            <button type="button" className="home-streak-pill home-streak-risk" onClick={onDaily}>
+              <IconStreak size={16} />
+              <span>
+                {stats.dailyStreak}-day streak at risk — play Daily to keep it!
+              </span>
+            </button>
+          ) : stats.dailyStreak > 0 ? (
             <div className="home-streak-pill">
               <IconStreak size={16} />
               <span>{stats.dailyStreak} day streak — keep it going!</span>
             </div>
-          )}
+          ) : null}
+        </div>
+
+        <div className="home-mode-row">
+          <button type="button" className="home-mode-chip" onClick={() => onStartMode('blitz')}>
+            ⚡ Blitz · 60s
+          </button>
+          <button type="button" className="home-mode-chip" onClick={() => onStartMode('zen')}>
+            🧘 Zen
+          </button>
+          <button type="button" className="home-mode-chip" onClick={() => onStartMode('timed')}>
+            ⏱️ Timed
+          </button>
+          <button type="button" className="home-mode-chip" onClick={() => onStartMode('coop')}>
+            🤝 Co-op
+          </button>
         </div>
 
         <div className="home-quick-links home-quick-fun">
@@ -183,7 +224,7 @@ export function Home({
             <span className="quick-link-icon" style={{ '--qc': '#db2777' } as React.CSSProperties}>
               <IconTrophy size={22} />
             </span>
-            <span className="quick-link-label">Achievements</span>
+            <span className="quick-link-label">Awards</span>
           </button>
         </div>
 

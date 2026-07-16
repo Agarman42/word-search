@@ -122,6 +122,26 @@ export const PUZZLE_PACKS: PuzzlePack[] = [
     coverGradient: 'linear-gradient(135deg, #5b21b6 0%, #a78bfa 50%, #7c3aed 100%)',
     puzzleCount: 10,
   },
+  {
+    id: 'spooky-search',
+    name: 'Spooky Search',
+    icon: '🎃',
+    description: '5 haunted hunts for October nights',
+    category: 'holiday',
+    color: '#f97316',
+    coverGradient: 'linear-gradient(135deg, #9a3412 0%, #fb923c 50%, #f97316 100%)',
+    puzzleCount: 5,
+  },
+  {
+    id: 'winter-fest',
+    name: 'Winter Festival',
+    icon: '❄️',
+    description: '5 festive levels of holiday cheer',
+    category: 'holiday',
+    color: '#38bdf8',
+    coverGradient: 'linear-gradient(135deg, #0369a1 0%, #7dd3fc 50%, #38bdf8 100%)',
+    puzzleCount: 5,
+  },
 ];
 
 export function getPackSeed(packId: string, level: number): string {

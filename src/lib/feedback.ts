@@ -86,6 +86,26 @@ export function playCompleteSound(settings: SoundSettings, wordsFound = 12): voi
   setTimeout(() => playTone(784, 0.3, 0.08, 'sine', soundPack), notes.length * 90 + 100);
 }
 
+export function playLastWordSound(settings: SoundSettings): void {
+  if (!shouldPlay(settings)) return;
+  const { soundPack } = settings;
+  playTone(523, 0.12, 0.08, 'sine', soundPack);
+  setTimeout(() => playTone(659, 0.12, 0.07, 'sine', soundPack), 70);
+  setTimeout(() => playTone(784, 0.18, 0.08, 'sine', soundPack), 140);
+  setTimeout(() => playTone(1047, 0.25, 0.06, 'sine', soundPack), 220);
+}
+
+export function playMilestoneSound(settings: SoundSettings): void {
+  if (!shouldPlay(settings)) return;
+  playTone(440, 0.08, 0.05, 'sine', settings.soundPack);
+  setTimeout(() => playTone(554, 0.1, 0.05, 'sine', settings.soundPack), 60);
+}
+
+export function playSoundPackPreview(settings: SoundSettings): void {
+  playFoundSound(settings, 3, 6);
+  setTimeout(() => playFoundSound(settings, 5, 5), 120);
+}
+
 export function playErrorSound(settings: SoundSettings): void {
   playNotWordSound(settings);
 }

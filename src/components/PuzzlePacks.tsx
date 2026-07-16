@@ -60,12 +60,20 @@ export function PuzzlePacks({ stats, onSelectPack, embedded }: PuzzlePacksProps)
             <div className="pack-cover-body">
               <span className="pack-cover-name">{pack.name}</span>
               <span className="pack-cover-desc">{pack.description}</span>
+              <div className="pack-level-dots" aria-hidden="true">
+                {Array.from({ length: pack.puzzleCount }).map((_, i) => (
+                  <span
+                    key={i}
+                    className={`pack-level-dot ${i < progress ? 'done' : i === nextLevel && !complete ? 'next' : ''}`}
+                  />
+                ))}
+              </div>
               <div className="pack-cover-footer">
                 <PackProgressArc pct={pct} color={pack.color} />
                 <span className="pack-cover-progress">
                   {complete
                     ? 'Complete — tap to replay'
-                    : `${progress}/${pack.puzzleCount} levels`}
+                    : `Level ${nextLevel + 1} of ${pack.puzzleCount}`}
                 </span>
               </div>
             </div>

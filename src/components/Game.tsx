@@ -15,7 +15,13 @@ import { DAILY_PUZZLE_CONFIG, generatePuzzle, getDailySeed } from '../lib/puzzle
 import { formatTime } from '../lib/gameLogic';
 import { getCategory } from '../lib/wordLists';
 import { todayString } from '../lib/rng';
-import { playCompleteSound, playHintSound } from '../lib/feedback';
+import {
+  playCompleteSound,
+  playHintSound,
+  playLastWordSound,
+  playMilestoneSound,
+  triggerHaptic,
+} from '../lib/feedback';
 import { getPuzzleOptions, getEffectiveGridSettings } from '../lib/difficulty';
 import { getDailyNumber } from '../lib/daily';
 import { CATEGORY_THEMES } from '../lib/categoryThemes';
@@ -23,6 +29,7 @@ import { getWordFact, getGenericFact } from '../lib/facts';
 import { getCompletionMessage, getWordFoundMessage, getBlitzEndMessage } from '../lib/microcopy';
 import { generateChallengeUrl } from '../lib/share';
 import { getPack, getPackSeed, getPackShuffleSeed } from '../lib/packs';
+import { getPackLevelConfig } from '../lib/packLevels';
 import { CategoryIcon, IconBack, IconHint, IconPack, IconShuffle, IconSpark } from './Icons';
 import { ThemeToggle } from './ThemeToggle';
 import { Grid, getFoundColor, getFoundPattern } from './Grid';
@@ -124,6 +131,13 @@ export function Game({
     return `${category}-${sessionSalt.current}-layout-${layoutKey}`;
   }, [category, isDaily, challenge, isPack, packId, packLevel, layoutKey]);
 
+  const packLevelConfig = useMemo(() => {
+    if (isPack && packId != null && packLevel != null) {
+      return getPackLevelConfig(packId, packLevel);
+    }
+    return null;
+  }, [isPack, packId, packLevel]);
+
   const { gridSize, wordCount } = useMemo(() => {
     if (isDaily) {
       return { gridSize: DAILY_PUZZLE_CONFIG.gridSize, wordCount: DAILY_PUZZLE_CONFIG.wordCount };
@@ -131,11 +145,11 @@ export function Game({
     if (challenge?.gridSize && challenge?.wordCount) {
       return { gridSize: challenge.gridSize, wordCount: challenge.wordCount };
     }
-    if (settings.gameMode === 'blitz' && !isPack) {
-      return getEffectiveGridSettings(settings);
+    if (packLevelConfig) {
+      return { gridSize: packLevelConfig.gridSize, wordCount: packLevelConfig.wordCount };
     }
     return getEffectiveGridSettings(settings);
-  }, [isDaily, challenge, settings, isPack]);
+  }, [isDaily, challenge, settings, packLevelConfig]);
 
   const puzzleOptions: PuzzleOptions = useMemo(() => {
     if (isDaily) return DAILY_PUZZLE_CONFIG.options;
@@ -150,20 +164,22 @@ export function Game({
         maxWordLength: Math.min(challenge.maxWordLength, gridSize),
       };
     }
-    // Long Words pack forces epic-length vocabulary
-    if (packId === 'long-words') {
-      return {
-        allowBackwards: true,
-        minWordLength: Math.min(8, gridSize),
-        maxWordLength: Math.min(15, gridSize),
-      };
-    }
+    if (packLevelConfig) return packLevelConfig.options;
     return getPuzzleOptions(settings, gridSize);
-  }, [isDaily, challenge, packId, settings, gridSize]);
+  }, [isDaily, challenge, packLevelConfig, settings, gridSize]);
 
   const puzzle: Puzzle = useMemo(
-    () => generatePuzzle(category, gridSize, wordCount, seed, puzzleOptions),
-    [category, gridSize, wordCount, seed, puzzleOptions],
+    () =>
+      generatePuzzle(
+        category,
+        gridSize,
+        wordCount,
+        seed,
+        puzzleOptions,
+        0,
+        packLevelConfig?.wordPool,
+      ),
+    [category, gridSize, wordCount, seed, puzzleOptions, packLevelConfig?.wordPool],
   );
 
   const soundSettings = useMemo(
@@ -362,6 +378,24 @@ export function Game({
       setLastFound(word.word);
       onWordFound();
 
+      const total = puzzle.words.length;
+      const foundCount = next.size;
+      const half = Math.floor(total / 2);
+      if (!isBlitz && foundCount === half && half > 0) {
+        playMilestoneSound(soundSettings);
+        setWordFact(`Halfway · ${total - foundCount} to go`);
+        setTimeout(() => setWordFact(null), 2200);
+      }
+      if (!isBlitz && foundCount === total - 1 && total > 1) {
+        playMilestoneSound(soundSettings);
+        setWordFact('One word left!');
+        setTimeout(() => setWordFact(null), 2200);
+      }
+      if (!isBlitz && foundCount === total) {
+        playLastWordSound(soundSettings);
+        triggerHaptic(settings.haptics, 'success');
+      }
+
       if (hintWord === word.word || (hintCell && cellMatchesHint(word, hintCell))) {
         setHintCell(null);
         setHintWord(null);
@@ -369,7 +403,7 @@ export function Game({
 
       if (isCoop) setCoopPlayer((p) => (p === 1 ? 2 : 1));
 
-      if (settings.showFacts) {
+      if (settings.showFacts && foundCount !== half && foundCount !== total - 1) {
         const fact = getWordFact(word.word) ?? getGenericFact(category);
         setWordFact(fact);
         setTimeout(() => setWordFact(null), 3500);
@@ -377,8 +411,7 @@ export function Game({
 
       setTimeout(() => setLastFound(null), 1400);
 
-      const total = puzzle.words.length;
-      if (!isBlitz && next.size === total) {
+      if (!isBlitz && foundCount === total) {
         finishGame(total);
       }
     },
@@ -391,6 +424,8 @@ export function Game({
       onWordFound,
       isCoop,
       settings.showFacts,
+      settings.haptics,
+      soundSettings,
       category,
       isBlitz,
       finishGame,
@@ -620,6 +655,8 @@ export function Game({
           newAchievement={newAchievement}
           isDaily={isDaily}
           isPack={isPack}
+          category={category}
+          confettiColors={theme.foundColors}
           showInstallNudge={
             showInstallNudge &&
             totalPuzzlesCompleted <= 1 &&
@@ -673,6 +710,11 @@ export function Game({
           dailyNumber={getDailyNumber(dailyDate)}
           seed={seed}
           streak={dailyStreak}
+          challengeExtras={{
+            gridSize,
+            wordCount: puzzle.words.length,
+            options: puzzleOptions,
+          }}
           onClose={() => setShowShare(false)}
         />
       )}

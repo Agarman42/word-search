@@ -1198,7 +1198,7 @@ html.theme-dark .game-complete-overlay {
   height: 8px;
   top: -10px;
   left: calc(var(--i) * 3.5%);
-  background: hsl(calc(var(--i) * 14), 75%, 58%);
+  background: var(--confetti-color, hsl(calc(var(--i) * 14), 75%, 58%));
   border-radius: 2px;
   animation: confettiFall 2.8s ease-in forwards;
   animation-delay: calc(var(--i) * 0.04s);
@@ -4180,6 +4180,170 @@ html.theme-dark .home-streak-pill {
 button:focus:not(:focus-visible),
 a:focus:not(:focus-visible) {
   outline: none;
+}
+
+/* Sprint A–C polish */
+.home-mode-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin: 4px 0 12px;
+}
+
+.home-mode-chip {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-family: var(--font);
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 8px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, transform 0.15s;
+}
+
+.home-mode-chip:hover {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.home-mode-chip:active { transform: scale(0.97); }
+
+.home-streak-risk {
+  border: none;
+  width: 100%;
+  cursor: pointer;
+  background: color-mix(in srgb, #f59e0b 14%, var(--surface));
+  color: var(--text);
+  font-weight: 600;
+}
+
+.home-streak-risk:hover {
+  background: color-mix(in srgb, #f59e0b 22%, var(--surface));
+}
+
+.stats-hub-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 14px;
+  padding: 0 4px;
+}
+
+.stats-hub-tab {
+  flex: 1;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  font-family: var(--font);
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding: 10px 8px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+
+.stats-hub-tab.active {
+  border-color: var(--accent);
+  color: var(--text);
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+}
+
+.stats-hub-screen {
+  padding-bottom: 8px;
+}
+
+.stats-embedded .screen-header,
+.weekly-embedded .screen-header,
+.achievements-embedded .screen-header {
+  display: none;
+}
+
+.weekly-play-btn {
+  margin-top: 10px;
+}
+
+.weekly-suggest-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.pack-level-dots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 8px 0 4px;
+}
+
+.pack-level-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--border);
+}
+
+.pack-level-dot.done {
+  background: var(--pack-color, var(--accent));
+}
+
+.pack-level-dot.next {
+  box-shadow: 0 0 0 2px var(--pack-color, var(--accent));
+  background: transparent;
+}
+
+.share-status {
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--accent);
+  margin: 0 0 8px;
+}
+
+.atlas-legend {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  text-align: center;
+  margin: 0 0 12px;
+  line-height: 1.4;
+}
+
+/* Desktop / tablet game layout */
+@media (min-width: 900px) {
+  .app {
+    max-width: 920px !important;
+  }
+
+  .app[data-screen='game'] .game-screen {
+    max-width: 100%;
+  }
+
+  .app[data-screen='game'] .game-play-area {
+    display: grid;
+    grid-template-columns: 1.2fr 0.9fr;
+    gap: 16px;
+    align-items: start;
+  }
+
+  .app[data-screen='game'] .game-board-wrap {
+    max-width: none;
+  }
+
+  .app[data-screen='game'] .grid-container {
+    max-width: 520px;
+  }
+
+  .app[data-screen='game'] .word-list {
+    max-height: min(70vh, 560px);
+  }
+
+  .app[data-screen='game'] .word-list.collapsed .word-list-body {
+    display: block;
+  }
+
+  .app[data-screen='game'] .word-list.collapsed {
+    /* keep expanded feel on desktop */
+  }
 }
 
 /* ── v1.7 polish ── */

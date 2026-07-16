@@ -38,6 +38,9 @@ export function Atlas({ stats, onSelectCategory, embedded }: AtlasProps) {
 
   const content = (
     <>
+      <p className="atlas-legend">
+        Complete puzzles to light paths · Bronze mastery at 3 plays per category
+      </p>
       <div className="atlas-map glass-panel">
         <div className="atlas-map-bg" />
         <svg className="atlas-paths" viewBox="0 0 100 100" preserveAspectRatio="none">

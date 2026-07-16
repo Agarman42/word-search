@@ -2,16 +2,17 @@ import { useState } from 'react';
 import type { Achievement, Stats } from '../types';
 import { APP_NAME } from '../lib/brand';
 import { getAchievementHint } from '../lib/achievementProgress';
-import { copyToClipboard } from '../lib/share';
+import { shareOrCopy } from '../lib/share';
 import { AchievementIcon } from './Icons';
 import { ScreenHeader } from './ScreenHeader';
 
 interface AchievementsPanelProps {
   achievements: Achievement[];
   stats: Stats;
+  embedded?: boolean;
 }
 
-export function AchievementsPanel({ achievements, stats }: AchievementsPanelProps) {
+export function AchievementsPanel({ achievements, stats, embedded }: AchievementsPanelProps) {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const unlocked = achievements.filter((a) => a.unlockedAt);
   const locked = achievements.filter((a) => !a.unlockedAt);
@@ -19,19 +20,23 @@ export function AchievementsPanel({ achievements, stats }: AchievementsPanelProp
 
   const shareAchievement = async (a: Achievement) => {
     const text = `I unlocked "${a.title}" in ${APP_NAME}! ${a.description}`;
-    const ok = await copyToClipboard(text);
-    if (ok) {
+    const result = await shareOrCopy(text);
+    if (result !== 'failed') {
       setCopiedId(a.id);
       setTimeout(() => setCopiedId(null), 2000);
     }
   };
 
+  const header = !embedded && (
+    <ScreenHeader
+      title="Achievements"
+      subtitle={`${unlocked.length} of ${achievements.length} unlocked (${pct}%)`}
+    />
+  );
+
   return (
-    <div className="screen achievements-screen">
-      <ScreenHeader
-        title="Achievements"
-        subtitle={`${unlocked.length} of ${achievements.length} unlocked (${pct}%)`}
-      />
+    <div className={embedded ? 'achievements-embedded' : 'screen achievements-screen'}>
+      {header}
 
       <div className="achievement-progress panel-card">
         <div className="achievement-progress-fill" style={{ width: `${pct}%` }} />

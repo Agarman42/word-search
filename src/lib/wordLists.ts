@@ -33,11 +33,16 @@ export function getWordsForCategory(
   rng: () => number,
   minLen = 3,
   maxLen = 15,
+  customPool?: string[],
 ): string[] {
-  const bank = WORD_BANKS[category].filter(
-    (w) => w.length >= minLen && w.length <= maxLen,
-  );
-  const pool = [...bank];
+  const source = customPool?.length ? customPool : WORD_BANKS[category];
+  const bank = source.filter((w) => w.length >= minLen && w.length <= maxLen);
+  // Fallback to category bank if custom pool too thin for length range
+  const effective =
+    bank.length >= Math.min(count, 4)
+      ? bank
+      : WORD_BANKS[category].filter((w) => w.length >= minLen && w.length <= maxLen);
+  const pool = [...effective];
   const selected: string[] = [];
 
   while (selected.length < count && pool.length > 0) {

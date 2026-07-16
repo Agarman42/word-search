@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
-import type { CategoryId, ChallengeParams, PuzzleTab, Screen } from './types';
+import type { CategoryId, ChallengeParams, GameMode, PuzzleTab, Screen } from './types';
 import { todayString } from './lib/rng';
 import { useAppState } from './hooks/useAppState';
 import { getDailyCategory } from './lib/daily';
 import { getPack } from './lib/packs';
 import { getActiveSeason, resolveSeasonalPlay } from './lib/seasonal';
+import { getPostDailyGoal } from './lib/homeGoals';
 import { parseChallengeFromHash, clearChallengeHash } from './lib/challenge';
 import { hasCompletedOnboarding } from './lib/onboarding';
 import { shouldShowDailyNudge } from './lib/dailyNudge';
@@ -61,6 +62,7 @@ export default function App() {
   const [showOnboarding, setShowOnboarding] = useState(() => !hasCompletedOnboarding());
   const [showDailyNudge, setShowDailyNudge] = useState(false);
   const [returnScreen, setReturnScreen] = useState<Screen>('home');
+  const [statsTab, setStatsTab] = useState<'overview' | 'weekly' | 'achievements'>('overview');
   const prevScreen = useRef(screen);
 
   const { lightBackground } = state.settings;
@@ -224,6 +226,21 @@ export default function App() {
     startGame(getDailyCategory(todayString()), true, null, 0, 'home');
   };
 
+  const handleStartMode = (mode: GameMode) => {
+    patchSettings({ gameMode: mode });
+    const cat = getDailyCategory(todayString());
+    startGame(cat, false, null, Date.now() % 1_000_000 + 1, 'home');
+  };
+
+  const handlePostDailyGoal = () => {
+    const goal = getPostDailyGoal(state.stats);
+    if (goal.type === 'pack' && goal.packId != null && goal.packLevel != null) {
+      startPackGame(goal.packId, goal.packLevel, goal.category);
+    } else {
+      startGame(goal.category, false, null, Date.now() % 1_000_000 + 1, 'home');
+    }
+  };
+
   const handleSeasonalPlay = () => {
     const season = getActiveSeason();
     if (!season) return;
@@ -255,6 +272,19 @@ export default function App() {
       goToPuzzles(tab);
       return;
     }
+    if (target === 'weekly') {
+      setStatsTab('weekly');
+      navigateTo('stats');
+      return;
+    }
+    if (target === 'achievements') {
+      setStatsTab('achievements');
+      navigateTo('stats');
+      return;
+    }
+    if (target === 'stats') {
+      setStatsTab('overview');
+    }
     navigateTo(target);
   };
 
@@ -282,8 +312,16 @@ export default function App() {
             onDaily={handleDaily}
             onContinue={(cat) => startGame(cat, false, null, Date.now() % 1_000_000 + 1, 'home')}
             onPacks={() => goToPuzzles('packs')}
-            onWeekly={() => navigateTo('weekly')}
-            onAchievements={() => navigateTo('achievements')}
+            onWeekly={() => {
+              setStatsTab('weekly');
+              navigateTo('stats');
+            }}
+            onAchievements={() => {
+              setStatsTab('achievements');
+              navigateTo('stats');
+            }}
+            onStartMode={handleStartMode}
+            onPostDailyGoal={handlePostDailyGoal}
             dailyCompleted={dailyCompleted}
             showDailyNudge={showDailyNudge}
             onDismissDailyNudge={() => setShowDailyNudge(false)}
@@ -305,7 +343,6 @@ export default function App() {
             onSelectPack={startPackGame}
           />
         )}
-        {screen === 'weekly' && <WeeklyRecap stats={state.stats} />}
         {screen === 'game' && activeCategory && (
           <Game
             key={`${activeCategory}-${packSession?.packId ?? ''}-${packSession?.level ?? ''}-${initialLayoutKey}-${isDaily}-${challenge?.seed ?? ''}`}
@@ -352,9 +389,40 @@ export default function App() {
             onInstall={handleInstall}
           />
         )}
-        {screen === 'stats' && <StatsPanel stats={state.stats} />}
-        {screen === 'achievements' && (
-          <AchievementsPanel achievements={state.achievements} stats={state.stats} />
+        {screen === 'stats' && (
+          <div className="screen stats-hub-screen">
+            <div className="stats-hub-tabs" role="tablist">
+              {(
+                [
+                  { id: 'overview' as const, label: 'Overview' },
+                  { id: 'weekly' as const, label: 'Weekly' },
+                  { id: 'achievements' as const, label: 'Awards' },
+                ] as const
+              ).map((t) => (
+                <button
+                  key={t.id}
+                  role="tab"
+                  type="button"
+                  className={`stats-hub-tab ${statsTab === t.id ? 'active' : ''}`}
+                  aria-selected={statsTab === t.id}
+                  onClick={() => setStatsTab(t.id)}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+            {statsTab === 'overview' && <StatsPanel stats={state.stats} embedded />}
+            {statsTab === 'weekly' && (
+              <WeeklyRecap
+                stats={state.stats}
+                embedded
+                onPlayCategory={(cat) => startGame(cat, false, null, Date.now() % 1_000_000 + 1, 'stats')}
+              />
+            )}
+            {statsTab === 'achievements' && (
+              <AchievementsPanel achievements={state.achievements} stats={state.stats} embedded />
+            )}
+          </div>
         )}
       </main>
       <VersionFooter />

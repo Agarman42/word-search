@@ -8,9 +8,10 @@ import { CategoryIcon, IconSpark } from './Icons';
 
 interface StatsPanelProps {
   stats: Stats;
+  embedded?: boolean;
 }
 
-export function StatsPanel({ stats }: StatsPanelProps) {
+export function StatsPanel({ stats, embedded }: StatsPanelProps) {
   const accuracy =
     stats.totalWordsFound + stats.totalWrongAttempts > 0
       ? Math.round(
@@ -23,10 +24,8 @@ export function StatsPanel({ stats }: StatsPanelProps) {
   const maxWeek = Math.max(...weekActivity, 1);
   const bestCat = getBestCategory(stats);
 
-  return (
-    <div className="screen stats-screen">
-      <ScreenHeader title="Statistics" subtitle="Your journey so far" />
-
+  const body = (
+    <>
       {isEmpty && (
         <div className="empty-state panel-card stats-empty-chart">
           <span className="empty-icon"><IconSpark size={28} /></span>
@@ -148,6 +147,17 @@ export function StatsPanel({ stats }: StatsPanelProps) {
           </div>
         </section>
       )}
+    </>
+  );
+
+  if (embedded) {
+    return <div className="stats-embedded">{body}</div>;
+  }
+
+  return (
+    <div className="screen stats-screen">
+      <ScreenHeader title="Statistics" subtitle="Your journey so far" />
+      {body}
     </div>
   );
 }

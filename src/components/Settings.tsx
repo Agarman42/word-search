@@ -5,6 +5,7 @@ import { WORD_LENGTH_PRESETS } from '../lib/wordLength';
 import type { WordLengthPreset } from '../types';
 import { getVersionLabel } from '../lib/version';
 import type { InstallMode } from '../lib/install';
+import { playSoundPackPreview } from '../lib/feedback';
 import { ScreenHeader } from './ScreenHeader';
 import { HowToPlay } from './HowToPlay';
 import { InstallPrompt } from './InstallPrompt';
@@ -111,17 +112,32 @@ export function Settings({
               <button
                 key={pack.value}
                 className={`option-btn ${settings.soundPack === pack.value ? 'active' : ''}`}
-                onClick={() =>
+                onClick={() => {
                   onChange({
                     soundPack: pack.value,
                     sound: pack.value !== 'off',
-                  })
-                }
+                  });
+                  if (pack.value !== 'off') {
+                    playSoundPackPreview({ sound: true, soundPack: pack.value });
+                  }
+                }}
               >
                 {pack.label}
               </button>
             ))}
           </div>
+
+          <label className="toggle-row">
+            <div className="setting-info">
+              <span className="setting-label">Haptic Feedback</span>
+              <span className="setting-desc">Vibration on finds and swipes</span>
+            </div>
+            <input
+              type="checkbox"
+              checked={settings.haptics}
+              onChange={(e) => onChange({ haptics: e.target.checked })}
+            />
+          </label>
         </section>
 
         <section className="settings-section">
@@ -295,16 +311,6 @@ export function Settings({
                   type="checkbox"
                   checked={settings.oneHandMode}
                   onChange={(e) => onChange({ oneHandMode: e.target.checked })}
-                />
-              </label>
-              <label className="toggle-row">
-                <div className="setting-info">
-                  <span className="setting-label">Haptic Feedback</span>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={settings.haptics}
-                  onChange={(e) => onChange({ haptics: e.target.checked })}
                 />
               </label>
             </div>
