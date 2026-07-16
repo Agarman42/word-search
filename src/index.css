@@ -4813,6 +4813,16 @@ html.theme-dark .home-streak-pill {
   }
 }
 
+.settings-hint-inline {
+  margin: 0 0 12px;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
+
+.word-length-options .mode-btn {
+  min-width: calc(50% - 4px);
+}
+
 @media (min-width: 600px) {
   .category-poster-grid { grid-template-columns: repeat(3, 1fr); }
 }

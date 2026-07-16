@@ -1,4 +1,5 @@
 import type { Category, CategoryId } from '../types';
+import { WORD_BANKS } from './wordBanks';
 
 export const CATEGORIES: Category[] = [
   { id: 'animals', name: 'Animals', icon: '🦁', description: 'Creatures great and small', color: '#f59e0b', atlasX: 22, atlasY: 35 },
@@ -8,74 +9,22 @@ export const CATEGORIES: Category[] = [
   { id: 'geography', name: 'Geography', icon: '🌍', description: 'Places, landmarks, and wonders', color: '#3b82f6', atlasX: 68, atlasY: 65 },
   { id: 'kids', name: 'Kids', icon: '🎈', description: 'Fun words for young explorers', color: '#ec4899', atlasX: 15, atlasY: 55 },
   { id: 'holiday', name: 'Holiday', icon: '🎄', description: 'Festive cheer all year round', color: '#14b8a6', atlasX: 55, atlasY: 48 },
+  { id: 'science', name: 'Science', icon: '🔬', description: 'Labs, life, and the laws of nature', color: '#06b6d4', atlasX: 38, atlasY: 28 },
+  { id: 'music', name: 'Music', icon: '🎵', description: 'Instruments, genres, and melody', color: '#e11d48', atlasX: 62, atlasY: 32 },
+  { id: 'nature', name: 'Nature', icon: '🌿', description: 'Forests, weather, and wild places', color: '#65a30d', atlasX: 18, atlasY: 72 },
+  { id: 'space', name: 'Space', icon: '🚀', description: 'Stars, planets, and cosmic quests', color: '#4f46e5', atlasX: 82, atlasY: 18 },
+  { id: 'books', name: 'Books', icon: '📚', description: 'Stories, poets, and literary worlds', color: '#b45309', atlasX: 72, atlasY: 78 },
 ];
-
-const WORD_BANKS: Record<CategoryId, string[]> = {
-  animals: [
-    'TIGER', 'EAGLE', 'WHALE', 'ZEBRA', 'PANDA', 'KOALA', 'OTTER', 'RABBIT',
-    'DOLPHIN', 'PENGUIN', 'GIRAFFE', 'CHEETAH', 'LEOPARD', 'BUFFALO', 'COYOTE',
-    'FALCON', 'PARROT', 'TURTLE', 'SALMON', 'SPIDER', 'MONKEY', 'DONKEY',
-    'CAMEL', 'HORSE', 'SHEEP', 'GOOSE', 'MOOSE', 'BEAVER', 'BADGER', 'FERRET',
-    'JAGUAR', 'COUGAR', 'LYNX', 'WALRUS', 'SEAL', 'SHARK', 'CORAL', 'HERON',
-    'FINCH', 'ROBIN', 'SNAKE', 'LIZARD', 'GECKO', 'IGUANA', 'BISON', 'ELK',
-  ],
-  food: [
-    'PIZZA', 'PASTA', 'SUSHI', 'TACOS', 'BREAD', 'APPLE', 'MANGO', 'GRAPE',
-    'BANANA', 'CHERRY', 'COOKIE', 'WAFFLE', 'PANCAKE', 'BURGER', 'NACHOS',
-    'RAMEN', 'CURRY', 'HUMMUS', 'OLIVE', 'BASIL', 'PEACH', 'MELON', 'LEMON',
-    'LIME', 'ONION', 'GARLIC', 'CARROT', 'CELERY', 'BUTTER', 'CHEESE', 'YOGURT',
-    'HONEY', 'SUGAR', 'FLOUR', 'TOAST', 'BACON', 'STEAK', 'SALAD', 'SOUP',
-    'CREAM', 'MUFFIN', 'DONUT', 'BROWNIE', 'TRUFFLE', 'COCOA', 'LATTE', 'MOCHA',
-  ],
-  sports: [
-    'SOCCER', 'TENNIS', 'GOLF', 'RUGBY', 'BOXING', 'HOCKEY', 'SKIING', 'RACING',
-    'SURFING', 'ROWING', 'FENCING', 'ARCHERY', 'CYCLING', 'JOGGING', 'SPRINT',
-    'MARATHON', 'VOLLEY', 'CRICKET', 'BASEBALL', 'LACROSSE', 'POLO', 'BOWLING',
-    'DIVING', 'KAYAK', 'SAILING', 'CLIMBING', 'GYMNAST', 'WRESTLE', 'KARATE',
-    'JUDO', 'SUMO', 'RALLY', 'DRIFT', 'SPRINT', 'RELAY', 'MEDAL', 'TROPHY',
-    'COACH', 'ARENA', 'STADIUM', 'COURT', 'TRACK', 'RINK', 'FIELD', 'MATCH',
-  ],
-  movies: [
-    'ACTION', 'COMEDY', 'DRAMA', 'HORROR', 'THRILLER', 'FANTASY', 'ROMANCE',
-    'SCIFI', 'OSCAR', 'ACTOR', 'SCENE', 'PLOT', 'TITLE', 'CREDIT', 'SCRIPT',
-    'CAMERA', 'DIRECT', 'STUDIO', 'PREVIEW', 'SEQUEL', 'REMAKE', 'GENRE',
-    'HERO', 'VILLAIN', 'CAST', 'FRAME', 'REEL', 'STAGE', 'CINEMA', 'THEATER',
-    'TICKET', 'POPCORN', 'TRAILER', 'PREMIERE', 'BLOCKBUSTER', 'INDIE', 'NOIR',
-    'WESTERN', 'MUSICAL', 'ANIMATION', 'DOCUMENTARY', 'ADVENTURE', 'MYSTERY',
-  ],
-  geography: [
-    'AFRICA', 'EUROPE', 'ASIA', 'OCEAN', 'RIVER', 'LAKE', 'DESERT', 'VALLEY',
-    'MOUNTAIN', 'ISLAND', 'COAST', 'BEACH', 'JUNGLE', 'FOREST', 'PLAINS',
-    'TUNDRA', 'GLACIER', 'VOLCANO', 'CANYON', 'BAY', 'GULF', 'CAPE', 'REEF',
-    'PARIS', 'TOKYO', 'CAIRO', 'DELHI', 'SYDNEY', 'LONDON', 'BERLIN', 'ROME',
-    'MOSCOW', 'DUBAI', 'SEOUL', 'BRAZIL', 'CANADA', 'MEXICO', 'INDIA', 'CHINA',
-    'SPAIN', 'ITALY', 'KENYA', 'PERU', 'CHILE', 'NORWAY', 'SWEDEN', 'POLAND',
-  ],
-  kids: [
-    'BALLOON', 'KITE', 'DOLL', 'TOY', 'GAME', 'PLAY', 'FUN', 'HAPPY',
-    'SMILE', 'DANCE', 'SING', 'DRAW', 'PAINT', 'COLOR', 'CRAYON', 'PENCIL',
-    'BOOK', 'STORY', 'FAIRY', 'MAGIC', 'DRAGON', 'CASTLE', 'PRINCE', 'PRINCESS',
-    'PUPPY', 'KITTEN', 'BUNNY', 'FROG', 'BIRD', 'FISH', 'STAR', 'MOON',
-    'SUN', 'CLOUD', 'RAIN', 'SNOW', 'RAINBOW', 'FLOWER', 'TREE', 'GRASS',
-    'SCHOOL', 'FRIEND', 'FAMILY', 'PARTY', 'CAKE', 'CANDY', 'PIZZA', 'PIRATE',
-  ],
-  holiday: [
-    'CHRISTMAS', 'EASTER', 'HANUKKAH', 'KWANZAA', 'DIWALI', 'HALLOWEEN',
-    'THANKS', 'NEWYEAR', 'VALENTINE', 'MOTHERS', 'FATHERS', 'BIRTHDAY',
-    'WREATH', 'ORNAMENT', 'TINSEL', 'STOCKING', 'MISTLETOE', 'HOLLY',
-    'PUMPKIN', 'CANDLE', 'FIREWORK', 'PARADE', 'FEAST', 'GIFT', 'CAROL',
-    'SNOWMAN', 'SLEIGH', 'REINDEER', 'ELVES', 'ANGEL', 'STAR', 'BELL',
-    'TURKEY', 'GRAVY', 'CIDER', 'EGGNOG', 'COOKIE', 'FROSTING', 'SPIRIT',
-    'JOY', 'PEACE', 'CHEER', 'MAGIC', 'WONDER', 'CELEBRATE', 'FESTIVE',
-  ],
-};
 
 export function getCategory(id: CategoryId): Category {
   return CATEGORIES.find((c) => c.id === id)!;
 }
 
 export function getSampleWords(category: CategoryId, count = 3): string[] {
-  return WORD_BANKS[category].slice(0, count);
+  const bank = WORD_BANKS[category];
+  const long = bank.filter((w) => w.length >= 7);
+  const pool = long.length >= count ? long : bank;
+  return pool.slice(0, count);
 }
 
 export function getWordsForCategory(

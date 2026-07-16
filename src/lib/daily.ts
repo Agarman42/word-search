@@ -2,6 +2,7 @@ import type { CategoryId, Stats } from '../types';
 
 const DAILY_CATEGORIES: CategoryId[] = [
   'animals', 'food', 'sports', 'movies', 'geography', 'kids', 'holiday',
+  'science', 'music', 'nature', 'space', 'books',
 ];
 
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -41,6 +42,31 @@ const COMMENTARY: Record<CategoryId, string[]> = {
     'Festive cheer sparkles in every corner.',
     "Celebrate with today's hidden treasures.",
     "Season's greetings — now go find them.",
+  ],
+  science: [
+    "Hypothesize, then hunt — today's lab is the grid.",
+    'Microscopes not required; curiosity is.',
+    'Elements of surprise in every line.',
+  ],
+  music: [
+    'Find the rhythm hidden in the letters.',
+    'From sonatas to solos — words await.',
+    "Today's puzzle hits all the right notes.",
+  ],
+  nature: [
+    'Wander wild paths through the letter maze.',
+    'Weather, woodlands, and wonder today.',
+    "Nature's vocabulary is vast — start here.",
+  ],
+  space: [
+    'Launch into a cosmic word expedition.',
+    'Stars align when you find them all.',
+    'Orbital thinking helps on this grid.',
+  ],
+  books: [
+    'Turn the page — every line tells a story.',
+    'Plot twists hide in plain sight today.',
+    'A literary hunt across the board.',
   ],
 };
 

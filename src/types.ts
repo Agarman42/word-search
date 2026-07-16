@@ -5,11 +5,18 @@ export type CategoryId =
   | 'movies'
   | 'geography'
   | 'kids'
-  | 'holiday';
+  | 'holiday'
+  | 'science'
+  | 'music'
+  | 'nature'
+  | 'space'
+  | 'books';
 
 export type GameMode = 'relaxed' | 'timed' | 'daily' | 'blitz' | 'zen' | 'coop';
 
-export type DifficultyPreset = 'easy' | 'medium' | 'hard' | 'expert' | 'custom';
+export type DifficultyPreset = 'easy' | 'medium' | 'hard' | 'expert' | 'longform' | 'custom';
+
+export type WordLengthPreset = 'short' | 'mixed' | 'long' | 'epic';
 
 export type MasteryTier = 'none' | 'bronze' | 'silver' | 'gold' | 'diamond';
 
@@ -44,6 +51,7 @@ export interface Settings {
   wordCount: number;
   gameMode: GameMode;
   difficultyPreset: DifficultyPreset;
+  wordLengthPreset: WordLengthPreset;
   allowBackwards: boolean;
   haptics: boolean;
   sound: boolean;
@@ -142,6 +150,7 @@ export const DEFAULT_SETTINGS: Settings = {
   wordCount: 12,
   gameMode: 'relaxed',
   difficultyPreset: 'medium',
+  wordLengthPreset: 'mixed',
   allowBackwards: false,
   haptics: true,
   sound: true,

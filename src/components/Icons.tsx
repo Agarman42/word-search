@@ -201,6 +201,37 @@ export function CategoryIcon({ id, size = 24, className }: { id: CategoryId; siz
           <path d="M12 3l-1 3h2l-1-3z" fill="currentColor" />
         </svg>
       );
+    case 'science':
+      return (
+        <svg {...props}>
+          <path d="M9 3h6v5l4 9H5l4-9V3z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
+          <path d="M10 14h4" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+        </svg>
+      );
+    case 'music':
+      return (
+        <svg {...props}>
+          <path d="M14 4v11.5a2.5 2.5 0 11-2-2.2M14 4l-5 2v9.5a2.5 2.5 0 11-2-2.2" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      );
+    case 'nature':
+      return (
+        <svg {...props}>
+          <path d="M12 3C9 8 6 9 6 13a6 6 0 1012 0c0-4-3-5-6-10z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
+        </svg>
+      );
+    case 'space':
+      return (
+        <svg {...props}>
+          <path d="M12 3l2 6 6 2-6 2-2 6-2-6-6-2 6-2 2-6z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
+        </svg>
+      );
+    case 'books':
+      return (
+        <svg {...props}>
+          <path d="M5 5h7v14H6a1 1 0 01-1-1V5zM12 5h7v14h-6a1 1 0 01-1-1V5z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
+        </svg>
+      );
     default:
       return <IconPuzzle size={size} className={className} />;
   }

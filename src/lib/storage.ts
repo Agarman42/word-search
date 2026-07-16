@@ -35,6 +35,9 @@ function migrateSettings(raw: Partial<Settings> & { themeMode?: string }): Setti
   if ('themeMode' in raw && !('lightBackground' in raw)) {
     s.lightBackground = raw.themeMode === 'day';
   }
+  if (!raw.wordLengthPreset) {
+    s.wordLengthPreset = 'mixed';
+  }
   return s;
 }
 

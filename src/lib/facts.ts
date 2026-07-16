@@ -37,6 +37,11 @@ export function getGenericFact(category: string): string {
     geography: 'There are 195 countries recognized by the United Nations.',
     kids: 'Children ask an average of 300 questions per day.',
     holiday: 'Over 2 billion people celebrate Christmas worldwide.',
+    science: 'Your body has around 37 trillion cells working in concert.',
+    music: 'The oldest known musical instrument is over 40,000 years old.',
+    nature: 'A single mature oak tree can support hundreds of species.',
+    space: 'There are more stars in the universe than grains of sand on Earth.',
+    books: 'The longest novel ever published has over 9 million words.',
   };
   return generics[category] ?? 'Every word has a story waiting to be discovered.';
 }

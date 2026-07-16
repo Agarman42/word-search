@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import type { GameMode, Settings as SettingsType, SoundPack } from '../types';
 import { DIFFICULTY_PRESETS, applyDifficultyPreset } from '../lib/difficulty';
+import { WORD_LENGTH_PRESETS } from '../lib/wordLength';
+import type { WordLengthPreset } from '../types';
 import { getVersionLabel } from '../lib/version';
 import type { InstallMode } from '../lib/install';
 import { ScreenHeader } from './ScreenHeader';
@@ -16,7 +18,7 @@ interface SettingsProps {
 }
 
 const GRID_SIZES = [8, 10, 12, 15];
-const WORD_COUNTS = [8, 10, 12, 15, 18];
+const WORD_COUNTS = [8, 10, 12, 15, 18, 20];
 const FONT_SCALES = [
   { value: 1, label: 'S' },
   { value: 1.15, label: 'M' },
@@ -116,6 +118,25 @@ export function Settings({
                 }
               >
                 {pack.label}
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <section className="settings-section">
+          <h3>Word Length</h3>
+          <p className="settings-hint settings-hint-inline">
+            Controls how long hidden words can be. Pair <strong>Long</strong> or <strong>Epic</strong> with Hard or Long Form difficulty.
+          </p>
+          <div className="setting-options word-length-options">
+            {(Object.keys(WORD_LENGTH_PRESETS) as WordLengthPreset[]).map((key) => (
+              <button
+                key={key}
+                className={`mode-btn ${settings.wordLengthPreset === key ? 'active' : ''}`}
+                onClick={() => onChange({ wordLengthPreset: key })}
+              >
+                <span className="mode-label">{WORD_LENGTH_PRESETS[key].label}</span>
+                <span className="mode-desc">{WORD_LENGTH_PRESETS[key].desc}</span>
               </button>
             ))}
           </div>
