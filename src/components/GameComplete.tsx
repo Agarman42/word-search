@@ -23,6 +23,7 @@ interface GameCompleteProps {
   onShare?: () => void;
   onCopyChallenge?: () => void;
   onPlayAgain?: () => void;
+  playAgainLabel?: string;
   onContinue: () => void;
 }
 
@@ -43,6 +44,7 @@ export function GameComplete({
   onShare,
   onCopyChallenge,
   onPlayAgain,
+  playAgainLabel = 'Play again',
   onContinue,
 }: GameCompleteProps) {
   const headline = isBlitz ? 'Blitz complete!' : 'You found them all!';
@@ -127,7 +129,7 @@ export function GameComplete({
           )}
           {!isDaily && onPlayAgain && (
             <button className="btn btn-glass btn-complete-secondary" onClick={onPlayAgain}>
-              Play again
+              {playAgainLabel}
             </button>
           )}
           <button className="btn btn-primary btn-glow btn-complete-primary" onClick={onContinue}>

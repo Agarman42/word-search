@@ -68,6 +68,10 @@ export function getPackSeed(packId: string, level: number): string {
   return `pack-${packId}-level-${level}`;
 }
 
+export function getPackShuffleSeed(packId: string, level: number, variant: number): string {
+  return `pack-${packId}-level-${level}-shuffle-${variant}`;
+}
+
 export function getPack(packId: string): PuzzlePack | undefined {
   return PUZZLE_PACKS.find((p) => p.id === packId);
 }

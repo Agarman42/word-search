@@ -11,8 +11,9 @@ import { CATEGORY_THEMES } from '../lib/categoryThemes';
 import { getWordFact, getGenericFact } from '../lib/facts';
 import { getCompletionMessage, getWordFoundMessage, getBlitzEndMessage } from '../lib/microcopy';
 import { generateChallengeUrl } from '../lib/share';
-import { getPack, getPackSeed } from '../lib/packs';
-import { CategoryIcon, IconBack, IconHint, IconPack, IconSpark } from './Icons';
+import { getPack, getPackSeed, getPackShuffleSeed } from '../lib/packs';
+import { CategoryIcon, IconBack, IconHint, IconPack, IconShuffle, IconSpark } from './Icons';
+import { ThemeToggle } from './ThemeToggle';
 import { Grid, getFoundColor, getFoundPattern } from './Grid';
 import { WordList } from './WordList';
 import { ShareCard } from './ShareCard';
@@ -44,6 +45,8 @@ interface GameProps {
   installMode?: InstallMode | null;
   onInstall?: () => void;
   onDismissInstall?: () => void;
+  onToggleLight: (light: boolean) => void;
+  initialLayoutKey?: number;
 }
 
 const BLITZ_DURATION_MS = 60000;
@@ -81,6 +84,8 @@ export function Game({
   installMode,
   onInstall,
   onDismissInstall,
+  onToggleLight,
+  initialLayoutKey = 0,
 }: GameProps) {
   const isPack = packId != null && packLevel != null;
   const pack = isPack ? getPack(packId) : undefined;
@@ -90,14 +95,20 @@ export function Game({
   const isBlitz = mode === 'blitz';
   const isZen = mode === 'zen';
   const isCoop = mode === 'coop';
-  const [replayKey, setReplayKey] = useState(0);
+  const [layoutKey, setLayoutKey] = useState(initialLayoutKey);
+  const sessionSalt = useRef(`${Date.now()}-${Math.random()}`);
+
+  const canShuffle = !isDaily && !challengeSeed;
 
   const seed = useMemo(() => {
-    if (isPack) return getPackSeed(packId!, packLevel!);
-    if (challengeSeed) return challengeSeed;
     if (isDaily) return getDailySeed(todayString());
-    return `${category}-${Date.now()}-${Math.random()}-${replayKey}`;
-  }, [category, isDaily, challengeSeed, isPack, packId, packLevel, replayKey]);
+    if (challengeSeed) return challengeSeed;
+    if (isPack) {
+      if (layoutKey === 0) return getPackSeed(packId!, packLevel!);
+      return getPackShuffleSeed(packId!, packLevel!, layoutKey);
+    }
+    return `${category}-${sessionSalt.current}-layout-${layoutKey}`;
+  }, [category, isDaily, challengeSeed, isPack, packId, packLevel, layoutKey]);
 
   const puzzleOptions = useMemo(() => getPuzzleOptions(settings), [settings]);
   const { gridSize, wordCount } = useMemo(
@@ -174,6 +185,33 @@ export function Game({
       pulseTimeoutRef.current = null;
     }, 1800);
   }, [foundWords]);
+
+  const resetPuzzleState = useCallback(() => {
+    if (undoTimeoutRef.current) clearTimeout(undoTimeoutRef.current);
+    undoTimeoutRef.current = null;
+    pendingWrongRef.current = false;
+    setCompleted(false);
+    setFoundWords(new Map());
+    setFoundPatterns(new Map());
+    setWrongAttempts(0);
+    setHintUsed(false);
+    setHintCell(null);
+    setHintWord(null);
+    setShowUndo(false);
+    setLastFound(null);
+    setWordFact(null);
+    setPulseCells([]);
+    setElapsed(0);
+    setBlitzRemaining(BLITZ_DURATION_MS);
+    startTime.current = Date.now();
+    blitzEnded.current = false;
+  }, []);
+
+  const handleNewLayout = useCallback(() => {
+    if (!canShuffle) return;
+    setLayoutKey((k) => k + 1);
+    resetPuzzleState();
+  }, [canShuffle, resetPuzzleState]);
 
   const finishGame = useCallback(
     (wordsFoundCount: number, timeUp = false) => {
@@ -411,20 +449,41 @@ export function Game({
           </span>
           <div className="game-header-chips">
             <span className="game-chip mode-chip">{modeLabel}{coopSuffix}</span>
+            {layoutKey > 0 && canShuffle && (
+              <span className="game-chip shuffle-chip">New layout</span>
+            )}
             <span className="game-chip count-chip">{foundWords.size}/{puzzle.words.length}</span>
           </div>
         </div>
-        <button
-          className={`btn-hint-v2 ${hintUsed ? 'used' : ''}`}
-          onClick={useHint}
-          disabled={hintUsed || completed}
-          aria-label="Use hint"
-          title={hintUsed ? 'Hint used' : 'Reveal first letter of a word'}
-        >
-          <span className="hint-ring" />
-          <IconHint size={18} />
-          {!hintUsed && <span className="hint-label">1</span>}
-        </button>
+        <div className="game-header-actions">
+          <ThemeToggle
+            lightBackground={settings.lightBackground}
+            onChange={onToggleLight}
+            compact
+          />
+          {canShuffle && (
+            <button
+              className="btn-icon-only btn-shuffle"
+              onClick={handleNewLayout}
+              disabled={completed}
+              aria-label="New layout"
+              title="New layout — same theme, fresh puzzle"
+            >
+              <IconShuffle size={18} />
+            </button>
+          )}
+          <button
+            className={`btn-hint-v2 ${hintUsed ? 'used' : ''}`}
+            onClick={useHint}
+            disabled={hintUsed || completed}
+            aria-label="Use hint"
+            title={hintUsed ? 'Hint used' : 'Reveal first letter of a word'}
+          >
+            <span className="hint-ring" />
+            <IconHint size={18} />
+            {!hintUsed && <span className="hint-label">1</span>}
+          </button>
+        </div>
       </header>
 
       <div className={`game-progress-wrap ${progressSweep ? 'sweep' : ''}`} aria-hidden="true">
@@ -510,22 +569,8 @@ export function Game({
               ? () => navigator.clipboard.writeText(generateChallengeUrl(seed, category))
               : undefined
           }
-          onPlayAgain={
-            !isDaily
-              ? () => {
-                  setReplayKey((k) => k + 1);
-                  setCompleted(false);
-                  setFoundWords(new Map());
-                  setFoundPatterns(new Map());
-                  setWrongAttempts(0);
-                  setHintUsed(false);
-                  setHintCell(null);
-                  setHintWord(null);
-                  startTime.current = Date.now();
-                  blitzEnded.current = false;
-                }
-              : undefined
-          }
+          onPlayAgain={canShuffle ? handleNewLayout : undefined}
+          playAgainLabel={isPack ? 'New layout' : 'Play again'}
           onContinue={onBack}
         />
       )}

@@ -57,6 +57,7 @@ export default function App() {
   const [isDaily, setIsDaily] = useState(false);
   const [challengeSeed, setChallengeSeed] = useState<string | undefined>();
   const [packSession, setPackSession] = useState<{ packId: string; level: number } | null>(null);
+  const [initialLayoutKey, setInitialLayoutKey] = useState(0);
   const [showOnboarding, setShowOnboarding] = useState(() => !hasCompletedOnboarding());
   const [showDailyNudge, setShowDailyNudge] = useState(false);
   const prevScreen = useRef(screen);
@@ -117,11 +118,17 @@ export default function App() {
     setScreen(target);
   };
 
-  const startGame = (category: CategoryId, daily = false, seed?: string) => {
+  const startGame = (
+    category: CategoryId,
+    daily = false,
+    seed?: string,
+    layoutKey = 0,
+  ) => {
     setActiveCategory(category);
     setIsDaily(daily);
     setChallengeSeed(seed);
     setPackSession(null);
+    setInitialLayoutKey(layoutKey);
     navigateTo('game');
   };
 
@@ -130,6 +137,7 @@ export default function App() {
     setPackSession({ packId, level });
     setIsDaily(false);
     setChallengeSeed(undefined);
+    setInitialLayoutKey(0);
     navigateTo('game');
   };
 
@@ -218,13 +226,16 @@ export default function App() {
             stats={state.stats}
             initialTab={puzzleTab}
             onSelectCategory={(cat) => startGame(cat)}
+            onShuffleCategory={(cat) => startGame(cat, false, undefined, 1)}
             onSelectPack={startPackGame}
           />
         )}
         {screen === 'weekly' && <WeeklyRecap stats={state.stats} />}
         {screen === 'game' && activeCategory && (
           <Game
+            key={`${activeCategory}-${packSession?.packId ?? ''}-${packSession?.level ?? ''}-${initialLayoutKey}-${isDaily}`}
             category={activeCategory}
+            initialLayoutKey={initialLayoutKey}
             settings={state.settings}
             isDaily={isDaily}
             challengeSeed={challengeSeed}
@@ -249,6 +260,7 @@ export default function App() {
             installMode={installMode}
             onInstall={handleInstall}
             onDismissInstall={dismissCompleteNudge}
+            onToggleLight={(v) => patchSettings({ lightBackground: v })}
           />
         )}
         {screen === 'settings' && (

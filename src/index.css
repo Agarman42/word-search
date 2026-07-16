@@ -2827,10 +2827,40 @@ html.theme-dark .install-prompt {
 .game-header-compact {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   padding: 8px 10px !important;
   border-radius: var(--radius-sm) !important;
   flex-shrink: 0;
+}
+
+.game-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.game-header-actions .theme-toggle.compact {
+  padding: 4px;
+}
+
+.btn-shuffle {
+  color: var(--text-secondary);
+}
+
+.btn-shuffle:hover:not(:disabled) {
+  color: var(--accent);
+}
+
+.btn-shuffle:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.game-chip.shuffle-chip {
+  font-size: 0.62rem;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent);
 }
 
 .game-progress-bar {
@@ -4238,6 +4268,15 @@ html.theme-dark .home-streak-pill {
 .category-poster {
   display: flex;
   flex-direction: column;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.category-poster-main {
+  display: flex;
+  flex-direction: column;
   border: none;
   padding: 0;
   cursor: pointer;
@@ -4245,12 +4284,33 @@ html.theme-dark .home-streak-pill {
   font-family: var(--font);
   color: var(--text);
   background: transparent;
-  border-radius: var(--radius-lg);
-  overflow: hidden;
+  width: 100%;
   transition: transform 0.2s var(--ease-spring);
 }
 
-.category-poster:active { transform: scale(0.98); }
+.category-poster-main:active { transform: scale(0.98); }
+
+.category-shuffle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  border-top: 1px solid var(--border);
+  background: color-mix(in srgb, var(--cat-color) 8%, var(--surface));
+  font-family: var(--font);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.category-shuffle-btn:hover {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--cat-color) 14%, var(--surface));
+}
 
 .category-poster-art {
   position: relative;
@@ -4288,9 +4348,6 @@ html.theme-dark .home-streak-pill {
 .category-poster-body {
   padding: 10px 12px 12px;
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-top: none;
-  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
 }
 
 .category-poster-name {

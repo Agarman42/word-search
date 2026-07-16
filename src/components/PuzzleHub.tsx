@@ -9,6 +9,7 @@ interface PuzzleHubProps {
   stats: Stats;
   initialTab?: PuzzleTab;
   onSelectCategory: (cat: CategoryId) => void;
+  onShuffleCategory?: (cat: CategoryId) => void;
   onSelectPack: (packId: string, level: number, category: CategoryId) => void;
 }
 
@@ -22,6 +23,7 @@ export function PuzzleHub({
   stats,
   initialTab = 'categories',
   onSelectCategory,
+  onShuffleCategory,
   onSelectPack,
 }: PuzzleHubProps) {
   const [tab, setTab] = useState<PuzzleTab>(initialTab);
@@ -56,6 +58,7 @@ export function PuzzleHub({
             completions={stats.categoryCompletions}
             mastery={stats.categoryMastery}
             onSelect={onSelectCategory}
+            onShuffle={onShuffleCategory}
           />
         )}
         {tab === 'packs' && (
