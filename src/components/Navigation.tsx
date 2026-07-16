@@ -9,39 +9,31 @@ interface NavigationProps {
 
 const NAV_ITEMS: { id: Screen; label: string; Icon: ComponentType<{ size?: number; className?: string }> }[] = [
   { id: 'home', label: 'Home', Icon: IconHome },
-  { id: 'categories', label: 'Play', Icon: IconPlay },
-  { id: 'atlas', label: 'Atlas', Icon: AtlasIcon },
+  { id: 'puzzles', label: 'Puzzles', Icon: IconPlay },
   { id: 'stats', label: 'Stats', Icon: IconStats },
   { id: 'settings', label: 'Settings', Icon: IconSettings },
 ];
 
-function AtlasIcon({ size = 22, className }: { size?: number; className?: string }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className}>
-      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.75" />
-      <path d="M3 12h18M12 3c2.5 3 2.5 15 0 18M12 3c-2.5 3-2.5 15 0 18" stroke="currentColor" strokeWidth="1.5" />
-    </svg>
-  );
+const PUZZLE_SCREENS: Screen[] = ['puzzles', 'categories', 'packs', 'atlas', 'weekly', 'achievements'];
+
+function resolveNavScreen(screen: Screen): Screen {
+  if (screen === 'home' || screen === 'stats' || screen === 'settings') return screen;
+  if (PUZZLE_SCREENS.includes(screen)) return 'puzzles';
+  return 'home';
 }
 
 export function Navigation({ screen, onNavigate }: NavigationProps) {
   if (screen === 'game') return null;
 
-  const navScreens: Screen[] = NAV_ITEMS.map((n) => n.id);
-  const navScreen: Screen =
-    screen === 'packs' || screen === 'weekly' || screen === 'achievements'
-      ? 'categories'
-      : screen;
-  const activeIndex = navScreens.includes(navScreen)
-    ? navScreens.indexOf(navScreen)
-    : 0;
+  const navScreen = resolveNavScreen(screen);
+  const activeIndex = NAV_ITEMS.findIndex((n) => n.id === navScreen);
 
   return (
     <nav className="bottom-nav-dock">
-      <div className="bottom-nav">
+      <div className="bottom-nav nav-4">
         <div
           className="nav-indicator"
-          style={{ '--nav-index': activeIndex } as React.CSSProperties}
+          style={{ '--nav-index': activeIndex, '--nav-count': 4 } as React.CSSProperties}
         />
         {NAV_ITEMS.map((item) => (
           <button

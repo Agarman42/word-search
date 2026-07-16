@@ -23,7 +23,7 @@ export function StatsPanel({ stats }: StatsPanelProps) {
       <ScreenHeader title="Statistics" subtitle="Your journey so far" />
 
       {isEmpty && (
-        <div className="empty-state glass-panel">
+        <div className="empty-state panel-card">
           <span className="empty-icon">✦</span>
           <p>{getEmptyStatsMessage()}</p>
         </div>

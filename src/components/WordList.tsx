@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { PlacedWord, Settings } from '../types';
 
 interface WordListProps {
@@ -5,6 +6,7 @@ interface WordListProps {
   foundWords: Map<string, string>;
   settings: Settings;
   zenMode?: boolean;
+  hintWord?: string | null;
   favoriteWords?: string[];
   onToggleFavorite?: (word: string) => void;
 }
@@ -14,9 +16,13 @@ export function WordList({
   foundWords,
   settings,
   zenMode = false,
+  hintWord,
   favoriteWords = [],
   onToggleFavorite,
 }: WordListProps) {
+  const [expanded, setExpanded] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(min-width: 600px)').matches,
+  );
   const sorted = [...words].sort((a, b) => a.word.localeCompare(b.word));
   const foundCount = foundWords.size;
   const hiddenCount = words.length - foundCount;
@@ -26,69 +32,63 @@ export function WordList({
     : sorted;
 
   return (
-    <div className={`word-list glass-panel ${settings.oneHandMode ? 'one-hand' : ''}`}>
-      <div className="word-list-header">
-        <div className="word-list-title-group">
-          <span className="word-list-title">
-            {zenMode ? 'Discovered' : 'Words to find'}
+    <div className={`word-list panel-card ${settings.oneHandMode ? 'one-hand' : ''} ${expanded ? 'expanded' : 'collapsed'}`}>
+      <button
+        className="word-list-toggle"
+        onClick={() => setExpanded((e) => !e)}
+        aria-expanded={expanded}
+      >
+        <span className="word-list-title">
+          {zenMode ? 'Discovered' : 'Words to find'}
+          <span className="word-list-count-inline">
+            {foundCount}/{words.length}
           </span>
-          <div className="word-list-mini-bar">
-            <div
-              className="word-list-mini-fill"
-              style={{ width: `${(foundCount / words.length) * 100}%` }}
-            />
-          </div>
-        </div>
-        <span className="word-list-count">
-          {zenMode && hiddenCount > 0 ? (
-            <span className="zen-remaining">{hiddenCount} hidden</span>
-          ) : (
-            <>
-              <span className="count-found">{foundCount}</span>
-              <span className="count-sep">/</span>
-              <span className="count-total">{words.length}</span>
-            </>
-          )}
         </span>
-      </div>
-      <div className="word-list-scroll">
-        <div className="word-list-items">
+        <span className="word-list-chevron">{expanded ? '▾' : '▸'}</span>
+      </button>
+
+      {expanded && (
+        <div className="word-list-body">
           {zenMode && foundCount === 0 && (
             <p className="zen-hint">Swipe the grid — words appear as you discover them.</p>
           )}
-          {visibleWords.map((w) => {
-            const color = foundWords.get(w.word);
-            const found = !!color;
-            const isFav = favoriteWords.includes(w.word);
+          {zenMode && hiddenCount > 0 && foundCount > 0 && (
+            <p className="zen-remaining">{hiddenCount} still hidden</p>
+          )}
+          <ul className="word-list-columns">
+            {visibleWords.map((w) => {
+              const found = foundWords.has(w.word);
+              const isHint = hintWord === w.word;
+              const isFav = favoriteWords.includes(w.word);
 
-            return (
-              <div
-                key={w.word}
-                className={`word-chip ${found ? 'found' : ''}`}
-                style={found ? { '--chip-color': color } as React.CSSProperties : undefined}
-              >
-                <span className="word-text">{w.word}</span>
-                {found && onToggleFavorite && (
-                  <button
-                    className={`fav-btn ${isFav ? 'active' : ''}`}
-                    onClick={() => onToggleFavorite(w.word)}
-                    aria-label={isFav ? 'Remove favorite' : 'Add favorite'}
-                  >
-                    {isFav ? '★' : '☆'}
-                  </button>
-                )}
-                {found && (
-                  <span className="word-check">
-                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                      <path d="M2.5 6l2.5 2.5 4.5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  </span>
-                )}
-              </div>
-            );
-          })}
+              return (
+                <li
+                  key={w.word}
+                  className={[
+                    'word-list-item',
+                    found && 'found',
+                    isHint && 'hint-word',
+                    w.word.length >= 10 && 'long',
+                  ]
+                    .filter(Boolean)
+                    .join(' ')}
+                >
+                  <span className="word-list-text">{w.word}</span>
+                  {found && onToggleFavorite && (
+                    <button
+                      className={`fav-btn ${isFav ? 'active' : ''}`}
+                      onClick={() => onToggleFavorite(w.word)}
+                      aria-label={isFav ? 'Remove favorite' : 'Add favorite'}
+                    >
+                      {isFav ? '★' : '☆'}
+                    </button>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
         </div>
-      </div>
+      )}
     </div>
   );
 }

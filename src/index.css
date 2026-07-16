@@ -35,6 +35,19 @@
   --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.08);
   --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.1);
   --shadow-glow: 0 0 40px rgba(139, 92, 246, 0.15);
+  --space-1: 8px;
+  --space-2: 12px;
+  --space-3: 16px;
+  --space-4: 24px;
+  --text-display: clamp(2.4rem, 9vw, 3.25rem);
+  --text-heading: 1.35rem;
+  --text-body: 0.9rem;
+  --text-caption: 0.72rem;
+  --text-micro: 0.62rem;
+  --card-bg: #ffffff;
+  --card-border: #e5e7eb;
+  --grid-paper: #fafafa;
+  --grid-line: #d1d5db;
 }
 
 html.theme-dark {
@@ -212,14 +225,16 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 
-.glass-panel {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+.glass-panel,
+.panel-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
   border-radius: var(--radius);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
-html.theme-dark .glass-panel {
+html.theme-dark .glass-panel,
+html.theme-dark .panel-card {
   background: var(--glass);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
@@ -586,9 +601,8 @@ html.theme-dark .btn-glass:hover {
 }
 
 .category-card {
-  background: var(--glass);
-  backdrop-filter: blur(16px);
-  border: 1px solid var(--glass-border);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
   border-radius: var(--radius);
   padding: 20px 16px;
   min-height: 148px;
@@ -666,12 +680,22 @@ html.theme-dark .btn-glass:hover {
 .category-plays {
   display: inline-block;
   margin-top: 10px;
-  font-size: 0.68rem;
+  font-size: var(--text-caption);
   color: var(--text-secondary);
-  background: rgba(255, 255, 255, 0.05);
+  background: #f3f4f6;
   padding: 3px 8px;
   border-radius: 8px;
   font-weight: 500;
+}
+
+html.theme-dark .category-card {
+  background: var(--glass);
+  backdrop-filter: blur(16px);
+  border-color: var(--glass-border);
+}
+
+html.theme-dark .category-plays {
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .category-arrow {
@@ -726,11 +750,11 @@ html.theme-dark .btn-glass:hover {
 
 .btn-icon-only:hover { background: rgba(0, 0, 0, 0.06); }
 
-.theme-dark .btn-icon-only {
+html.theme-dark .btn-icon-only {
   background: rgba(255, 255, 255, 0.04);
 }
 
-.theme-dark .btn-icon-only:hover {
+html.theme-dark .btn-icon-only:hover {
   background: rgba(255, 255, 255, 0.08);
 }
 
@@ -872,9 +896,8 @@ html.theme-dark .btn-glass:hover {
 .grid-frame {
   position: relative;
   padding: 14px;
-  background: var(--glass);
-  backdrop-filter: blur(20px);
-  border: 1px solid var(--glass-border);
+  background: var(--grid-paper);
+  border: 1px solid var(--grid-line);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md), inset 0 1px 0 rgba(255, 255, 255, 0.05);
   overflow: hidden;
@@ -959,8 +982,8 @@ html.theme-dark .btn-glass:hover {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.03);
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: #ffffff;
+  border: 1px solid var(--grid-line);
   border-radius: 7px;
   aspect-ratio: 1;
   min-width: 0;
@@ -977,15 +1000,25 @@ html.theme-dark .btn-glass:hover {
 }
 
 .grid-cell.selecting {
-  background: rgba(167, 139, 250, 0.3);
-  border-color: rgba(167, 139, 250, 0.5);
+  background: #ede9fe;
+  border-color: #7c3aed;
   z-index: 4;
-  box-shadow: 0 0 16px rgba(139, 92, 246, 0.35);
+  box-shadow: inset 0 0 0 1px #7c3aed;
+}
+
+.grid-cell.selecting .grid-letter {
+  color: #1e1b4b;
+  font-weight: 700;
 }
 
 .grid-cell.found {
   border-color: transparent;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+}
+
+.grid-cell.found .grid-letter {
+  color: #1a1a24 !important;
+  font-weight: 700;
 }
 
 .grid-cell.pop {
@@ -1132,7 +1165,7 @@ html.theme-dark .btn-glass:hover {
 .game-complete-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(3, 3, 6, 0.88);
+  background: rgba(255, 255, 255, 0.88);
   backdrop-filter: blur(12px);
   display: flex;
   align-items: center;
@@ -1415,22 +1448,19 @@ html.theme-dark .btn-glass:hover {
 }
 
 .stat-hero-card {
-  background: var(--glass);
-  backdrop-filter: blur(16px);
-  border: 1px solid var(--glass-border);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
   border-radius: var(--radius);
   padding: 20px 14px;
   text-align: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .stat-hero-value {
   display: block;
   font-size: 1.65rem;
   font-weight: 700;
-  background: linear-gradient(135deg, var(--text), var(--accent-light));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #1e1b4b;
 }
 
 .stat-hero-label {
@@ -1573,7 +1603,7 @@ html.theme-dark .btn-glass:hover {
 .nav-indicator {
   position: absolute;
   top: 6px;
-  left: calc((var(--nav-index) + 0.5) * 20%);
+  left: calc((var(--nav-index) + 0.5) * (100% / var(--nav-count, 5)));
   transform: translateX(-50%);
   width: 40px;
   height: 3px;
@@ -1697,7 +1727,7 @@ html.theme-dark .btn-glass:hover {
   box-shadow: var(--shadow-md);
 }
 
-.theme-dark .ambient {
+html.theme-dark .ambient {
   opacity: 1;
 }
 
@@ -1719,27 +1749,27 @@ html.theme-dark .stat-value {
   color: transparent;
 }
 
-.theme-dark .grid-cell {
+html.theme-dark .grid-cell {
   background: rgba(255, 255, 255, 0.03);
   border-color: rgba(255, 255, 255, 0.04);
 }
 
-.theme-dark .grid-cell .grid-letter {
+html.theme-dark .grid-cell .grid-letter {
   color: var(--text);
 }
 
-.theme-dark .bottom-nav {
+html.theme-dark .bottom-nav {
   background: rgba(12, 12, 18, 0.88);
   border-color: var(--glass-border);
   box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
-.theme-dark .btn-glass {
+html.theme-dark .btn-glass {
   background: rgba(255, 255, 255, 0.04);
   border-color: var(--border);
 }
 
-.theme-dark .word-chip {
+html.theme-dark .word-chip {
   background: rgba(255, 255, 255, 0.04);
   border-color: var(--border);
 }
@@ -1793,7 +1823,7 @@ html.theme-dark .theme-toggle {
   transition: background 0.25s ease;
 }
 
-.theme-dark .theme-toggle-track {
+html.theme-dark .theme-toggle-track {
   background: rgba(255, 255, 255, 0.1);
   border-color: var(--border);
 }
@@ -1885,7 +1915,7 @@ html.theme-dark .theme-toggle {
 /* Quick links */
 .home-quick-links {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 8px;
   margin-bottom: 20px;
 }
@@ -2612,31 +2642,355 @@ html.theme-dark .install-prompt {
   box-shadow: var(--shadow-sm);
 }
 
-.theme-dark .found-words-overlay {
+html.theme-dark .found-words-overlay {
   filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.2));
 }
 
-.theme-dark .onboarding-overlay {
+html.theme-dark .onboarding-overlay {
   background: rgba(0, 0, 0, 0.65);
 }
 
-.theme-dark .onboarding-dot {
+html.theme-dark .onboarding-dot {
   background: rgba(255, 255, 255, 0.15);
 }
 
-.theme-dark .pack-progress-bar {
+html.theme-dark .pack-progress-bar {
   background: rgba(255, 255, 255, 0.06);
 }
 
-.theme-dark .btn-hint {
+html.theme-dark .btn-hint {
   background: rgba(255, 255, 255, 0.04);
   border-color: var(--border);
 }
 
-.theme-dark .game-header,
-.theme-dark .pack-card,
-.theme-dark .install-prompt {
+html.theme-dark .game-header,
+html.theme-dark .pack-card,
+html.theme-dark .install-prompt {
   box-shadow: none;
+}
+
+/* ── v1.5 UX polish ── */
+
+.screen-enter {
+  animation: screenEnter 0.32s var(--ease-spring);
+}
+
+@keyframes screenEnter {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.reduce-motion .screen-enter { animation: none; }
+
+.hero-compact {
+  padding: var(--space-2) 0 var(--space-3);
+}
+
+.hero-compact .hero-logo { margin-bottom: var(--space-2); }
+.hero-compact .hero-title { font-size: var(--text-display); }
+.hero-compact .hero-divider { display: none; }
+
+.home-empty { text-align: center; padding: var(--space-4) var(--space-3); }
+.home-empty p { font-size: var(--text-body); color: var(--text-secondary); }
+
+.empty-state {
+  text-align: center;
+  padding: var(--space-4) var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.empty-icon { display: block; font-size: 1.6rem; margin-bottom: var(--space-2); }
+.empty-state p { font-size: var(--text-body); color: var(--text-secondary); line-height: 1.5; }
+
+.daily-nudge {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  margin-bottom: var(--space-3);
+  border-left: 3px solid #f59e0b;
+}
+
+.daily-nudge-text { display: flex; gap: 10px; align-items: center; flex: 1; }
+.daily-nudge-icon { font-size: 1.3rem; }
+.daily-nudge-title { display: block; font-weight: 700; font-size: var(--text-body); }
+.daily-nudge-desc { display: block; font-size: var(--text-caption); color: var(--text-muted); }
+.daily-nudge-actions { display: flex; align-items: center; gap: 8px; }
+.daily-nudge-btn { padding: 8px 14px !important; min-height: unset !important; font-size: var(--text-caption) !important; }
+.daily-nudge-dismiss { background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px; }
+
+.seasonal-dismiss {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px 8px;
+  flex-shrink: 0;
+}
+
+.puzzle-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: var(--space-3);
+  padding: 4px;
+  background: #f3f4f6;
+  border-radius: var(--radius-sm);
+}
+
+.puzzle-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 8px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font);
+  font-size: var(--text-caption);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.puzzle-tab.active {
+  background: var(--card-bg);
+  color: var(--text);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.puzzle-tab-icon { font-size: 0.9rem; }
+.puzzles-screen .category-grid { margin-top: 0; }
+.puzzles-screen .packs-list { margin-top: 0; }
+.atlas-embedded .atlas-map { margin-bottom: var(--space-3); }
+
+.game-header-compact {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px !important;
+  border-radius: var(--radius-sm) !important;
+  flex-shrink: 0;
+}
+
+.game-progress-bar {
+  height: 3px;
+  background: #e5e7eb;
+  border-radius: 2px;
+  margin-bottom: 6px;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.game-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #7c3aed, #0891b2);
+  border-radius: 2px;
+  transition: width 0.4s var(--ease-spring);
+}
+
+.selection-trail.wrong {
+  filter: drop-shadow(0 0 6px rgba(239, 68, 68, 0.5));
+}
+
+.word-list.panel-card {
+  flex-shrink: 0;
+  overflow: hidden;
+  padding: 0;
+}
+
+.word-list-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border: none;
+  background: transparent;
+  font-family: var(--font);
+  cursor: pointer;
+  color: var(--text);
+}
+
+.word-list-title {
+  font-weight: 600;
+  font-size: var(--text-caption);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+.word-list-count-inline {
+  margin-left: 8px;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.word-list-chevron { color: var(--text-muted); font-size: 0.85rem; }
+
+.word-list-body {
+  padding: 0 12px 12px;
+  max-height: 28dvh;
+  overflow-y: auto;
+}
+
+.word-list.collapsed .word-list-body { display: none; }
+
+.word-list-columns {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 4px 12px;
+  margin: 0;
+  padding: 0;
+}
+
+.word-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 6px 4px;
+  font-size: var(--text-caption);
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: var(--text);
+  border-bottom: 1px solid #f3f4f6;
+  min-width: 0;
+}
+
+.word-list-item.long .word-list-text { font-size: 0.62rem; }
+
+.word-list-item.found .word-list-text {
+  text-decoration: line-through;
+  text-decoration-color: #6d28d9;
+  color: var(--text-muted);
+}
+
+.word-list-item.hint-word {
+  background: #fffbeb;
+  border-radius: 6px;
+  animation: hintWordPulse 1.4s ease-in-out infinite;
+}
+
+@keyframes hintWordPulse {
+  0%, 100% { box-shadow: inset 0 0 0 1px #fde68a; }
+  50% { box-shadow: inset 0 0 0 2px #f59e0b; }
+}
+
+.word-list-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+
+.settings-collapse-trigger {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: var(--font);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.settings-collapse-trigger h3 { margin: 0; }
+
+.settings-collapse-body {
+  margin-top: var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.settings-hint {
+  font-size: var(--text-caption);
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.sound-pack-row { margin-top: var(--space-1); }
+
+.achievement-progress {
+  position: relative;
+  height: 8px;
+  margin-bottom: var(--space-3);
+  overflow: hidden;
+  padding: 0 !important;
+}
+
+.achievement-progress-label {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: var(--text-micro);
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.app[data-screen='home'] .version-footer-subtle {
+  opacity: 0.4;
+  font-size: var(--text-micro);
+}
+
+html.theme-dark {
+  --card-bg: rgba(14, 14, 20, 0.72);
+  --card-border: rgba(255, 255, 255, 0.08);
+  --grid-paper: rgba(14, 14, 20, 0.6);
+  --grid-line: rgba(255, 255, 255, 0.08);
+}
+
+html.theme-dark .grid-frame {
+  background: var(--glass);
+  backdrop-filter: blur(20px);
+  border-color: var(--glass-border);
+}
+
+html.theme-dark .grid-cell {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+html.theme-dark .grid-cell.found .grid-letter {
+  color: #ffffff !important;
+}
+
+html.theme-dark .game-complete-overlay {
+  background: rgba(3, 3, 6, 0.88);
+}
+
+html.theme-dark .game-progress-bar { background: rgba(255, 255, 255, 0.08); }
+
+html.theme-dark .puzzle-tabs { background: rgba(255, 255, 255, 0.06); }
+
+html.theme-dark .puzzle-tab.active {
+  background: var(--glass);
+  box-shadow: none;
+}
+
+html.theme-dark .word-list-item { border-bottom-color: var(--border); }
+
+html.theme-dark .word-list-item.hint-word { background: rgba(251, 191, 36, 0.1); }
+
+html.theme-dark .category-card {
+  background: var(--glass);
+  backdrop-filter: blur(16px);
+}
+
+html.theme-dark .stat-hero-card,
+html.theme-dark .record-row,
+html.theme-dark .category-stat-row,
+html.theme-dark .recent-game-row {
+  background: var(--glass);
+  border-color: var(--glass-border);
 }
 
 /* ── Responsive ── */

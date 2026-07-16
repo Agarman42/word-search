@@ -97,6 +97,7 @@ export function Game({
   const [coopPlayer, setCoopPlayer] = useState(1);
   const [completionMsg, setCompletionMsg] = useState('');
   const [hintCell, setHintCell] = useState<Cell | null>(null);
+  const [hintWord, setHintWord] = useState<string | null>(null);
   const [hintUsed, setHintUsed] = useState(false);
   const [showUndo, setShowUndo] = useState(false);
   const [isLandscape, setIsLandscape] = useState(false);
@@ -206,8 +207,9 @@ export function Game({
       setLastFound(word.word);
       onWordFound();
 
-      if (hintCell && cellMatchesHint(word, hintCell)) {
+      if (hintWord === word.word || (hintCell && cellMatchesHint(word, hintCell))) {
         setHintCell(null);
+        setHintWord(null);
       }
 
       if (isCoop) setCoopPlayer((p) => (p === 1 ? 2 : 1));
@@ -229,6 +231,7 @@ export function Game({
       foundWords,
       foundPatterns,
       hintCell,
+      hintWord,
       puzzle.words.length,
       onWordFound,
       isCoop,
@@ -269,6 +272,7 @@ export function Game({
     if (unfound.length === 0) return;
     const pick = unfound[Math.floor(Math.random() * unfound.length)];
     setHintCell(pick.cells[0]);
+    setHintWord(pick.word);
     setHintUsed(true);
     playHintSound(soundSettings);
     onHintUsed?.();
@@ -276,7 +280,6 @@ export function Game({
 
   const cat = getCategory(category);
   const progress = (foundWords.size / puzzle.words.length) * 100;
-  const circumference = 2 * Math.PI * 18;
   const dailyCommentary = isDaily
     ? getDailyCommentary(dailyDate, category)
     : null;
@@ -296,7 +299,7 @@ export function Game({
         </div>
       )}
 
-      <header className="game-header glass-panel">
+      <header className="game-header-compact panel-card">
         <button className="btn-icon-only" onClick={onBack} aria-label="Back">
           <IconBack />
         </button>
@@ -311,7 +314,8 @@ export function Game({
             {mode === 'daily' && 'Daily'}
             {mode === 'blitz' && 'Blitz · 60s'}
             {mode === 'zen' && 'Zen'}
-            {mode === 'coop' && `Co-op · Player ${coopPlayer}`}
+            {mode === 'coop' && `Co-op · P${coopPlayer}`}
+            {' · '}{foundWords.size}/{puzzle.words.length}
           </span>
         </div>
         <button
@@ -323,24 +327,11 @@ export function Game({
         >
           💡
         </button>
-        <div className="game-progress-ring">
-          <svg width="44" height="44" viewBox="0 0 44 44">
-            <circle cx="22" cy="22" r="18" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="3" />
-            <circle
-              cx="22" cy="22" r="18"
-              fill="none"
-              stroke="url(#ring-grad)"
-              strokeWidth="3"
-              strokeLinecap="round"
-              strokeDasharray={circumference}
-              strokeDashoffset={circumference * (1 - progress / 100)}
-              transform="rotate(-90 22 22)"
-              className="progress-ring-circle"
-            />
-          </svg>
-          <span className="ring-label">{foundWords.size}/{puzzle.words.length}</span>
-        </div>
       </header>
+
+      <div className="game-progress-bar" aria-hidden="true">
+        <div className="game-progress-fill" style={{ width: `${progress}%` }} />
+      </div>
 
       {isBlitz && (
         <div className="game-timer-bar blitz-bar">
@@ -398,6 +389,7 @@ export function Game({
           foundWords={foundWords}
           settings={settings}
           zenMode={isZen}
+          hintWord={hintWord}
           favoriteWords={favoriteWords}
           onToggleFavorite={onToggleFavorite}
         />

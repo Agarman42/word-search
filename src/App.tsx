@@ -1,20 +1,19 @@
 import { useEffect, useState } from 'react';
-import type { CategoryId, Screen } from './types';
+import type { CategoryId, PuzzleTab, Screen } from './types';
 import { todayString } from './lib/rng';
 import { useAppState } from './hooks/useAppState';
 import { getDailyCategory } from './lib/daily';
 import { parseChallengeFromHash, clearChallengeHash } from './lib/challenge';
 import { hasCompletedOnboarding } from './lib/onboarding';
+import { shouldShowDailyNudge } from './lib/dailyNudge';
 import { useInstallPrompt } from './hooks/useInstallPrompt';
 import { Home } from './components/Home';
-import { CategoryPicker } from './components/CategoryPicker';
+import { PuzzleHub } from './components/PuzzleHub';
 import { Game } from './components/Game';
 import { Settings } from './components/Settings';
 import { StatsPanel } from './components/StatsPanel';
 import { AchievementsPanel } from './components/AchievementsPanel';
-import { Atlas } from './components/Atlas';
 import { WeeklyRecap } from './components/WeeklyRecap';
-import { PuzzlePacks } from './components/PuzzlePacks';
 import { Onboarding } from './components/Onboarding';
 import { Navigation } from './components/Navigation';
 import { AmbientBackground } from './components/AmbientBackground';
@@ -32,14 +31,17 @@ export default function App() {
     onToggleFavorite,
   } = useAppState();
   const [screen, setScreen] = useState<Screen>('home');
+  const [puzzleTab, setPuzzleTab] = useState<PuzzleTab>('categories');
   const [activeCategory, setActiveCategory] = useState<CategoryId | null>(null);
   const [isDaily, setIsDaily] = useState(false);
   const [challengeSeed, setChallengeSeed] = useState<string | undefined>();
   const [packSession, setPackSession] = useState<{ packId: string; level: number } | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(() => !hasCompletedOnboarding());
+  const [showDailyNudge, setShowDailyNudge] = useState(false);
 
   const { lightBackground } = state.settings;
   const { canInstall, install, dismiss } = useInstallPrompt();
+  const dailyCompleted = state.stats.completedDailyDates.includes(todayString());
 
   useEffect(() => {
     document.documentElement.classList.toggle('theme-dark', !lightBackground);
@@ -59,13 +61,13 @@ export default function App() {
     }
   }, []);
 
-  const dailyCompleted = state.stats.completedDailyDates.includes(todayString());
+  useEffect(() => {
+    if (!showOnboarding && shouldShowDailyNudge(dailyCompleted, state.stats.totalPuzzlesCompleted)) {
+      setShowDailyNudge(true);
+    }
+  }, [showOnboarding, dailyCompleted, state.stats.totalPuzzlesCompleted]);
 
-  const startGame = (
-    category: CategoryId,
-    daily = false,
-    seed?: string,
-  ) => {
+  const startGame = (category: CategoryId, daily = false, seed?: string) => {
     setActiveCategory(category);
     setIsDaily(daily);
     setChallengeSeed(seed);
@@ -81,13 +83,23 @@ export default function App() {
     setScreen('game');
   };
 
+  const goToPuzzles = (tab: PuzzleTab = 'categories') => {
+    setPuzzleTab(tab);
+    setScreen('puzzles');
+  };
+
   const handleBack = () => {
     const wasPack = !!packSession;
     setActiveCategory(null);
     setIsDaily(false);
     setChallengeSeed(undefined);
     setPackSession(null);
-    setScreen(wasPack ? 'packs' : 'home');
+    if (wasPack) {
+      setPuzzleTab('packs');
+      setScreen('puzzles');
+    } else {
+      setScreen('home');
+    }
   };
 
   const handleDaily = () => {
@@ -97,6 +109,16 @@ export default function App() {
   const handleInstall = async () => {
     const accepted = await install();
     if (accepted) dismiss();
+  };
+
+  const handleNavigate = (target: Screen) => {
+    if (target === 'categories' || target === 'atlas' || target === 'packs') {
+      const tab: PuzzleTab =
+        target === 'packs' ? 'packs' : target === 'atlas' ? 'atlas' : 'categories';
+      goToPuzzles(tab);
+      return;
+    }
+    setScreen(target);
   };
 
   return (
@@ -109,41 +131,31 @@ export default function App() {
       data-screen={screen}
     >
       <AmbientBackground />
-      <main className="app-main">
+      <main key={screen} className="app-main screen-enter">
         {screen === 'home' && (
           <Home
             stats={state.stats}
             lightBackground={lightBackground}
             onToggleLight={(v) => patchSettings({ lightBackground: v })}
-            onPlay={() => setScreen('categories')}
+            onPlay={() => goToPuzzles('categories')}
             onDaily={handleDaily}
-            onPacks={() => setScreen('packs')}
-            onAtlas={() => setScreen('atlas')}
+            onPacks={() => goToPuzzles('packs')}
             onWeekly={() => setScreen('weekly')}
             onAchievements={() => setScreen('achievements')}
             dailyCompleted={dailyCompleted}
+            showDailyNudge={showDailyNudge}
+            onDismissDailyNudge={() => setShowDailyNudge(false)}
             canInstall={canInstall}
             onInstall={handleInstall}
             onDismissInstall={dismiss}
           />
         )}
-        {screen === 'categories' && (
-          <CategoryPicker
-            completions={state.stats.categoryCompletions}
-            mastery={state.stats.categoryMastery}
-            onSelect={(cat) => startGame(cat)}
-          />
-        )}
-        {screen === 'packs' && (
-          <PuzzlePacks
+        {screen === 'puzzles' && (
+          <PuzzleHub
             stats={state.stats}
-            onSelectPack={startPackGame}
-          />
-        )}
-        {screen === 'atlas' && (
-          <Atlas
-            stats={state.stats}
+            initialTab={puzzleTab}
             onSelectCategory={(cat) => startGame(cat)}
+            onSelectPack={startPackGame}
           />
         )}
         {screen === 'weekly' && <WeeklyRecap stats={state.stats} />}
@@ -175,7 +187,7 @@ export default function App() {
         )}
       </main>
       <VersionFooter />
-      <Navigation screen={screen} onNavigate={setScreen} />
+      <Navigation screen={screen} onNavigate={handleNavigate} />
       {showOnboarding && (
         <Onboarding onComplete={() => setShowOnboarding(false)} />
       )}

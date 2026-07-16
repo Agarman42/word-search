@@ -24,12 +24,12 @@ interface GridProps {
 }
 
 const FOUND_COLORS = [
-  'var(--found-1)',
-  'var(--found-2)',
-  'var(--found-3)',
-  'var(--found-4)',
-  'var(--found-5)',
-  'var(--found-6)',
+  '#fde68a',
+  '#bbf7d0',
+  '#bfdbfe',
+  '#fbcfe8',
+  '#fed7aa',
+  '#ddd6fe',
 ];
 
 function soundFromSettings(settings: Settings): SoundSettings {
@@ -62,6 +62,7 @@ export function Grid({
   const [currentCells, setCurrentCells] = useState<Cell[]>([]);
   const [revealingCells, setRevealingCells] = useState<Set<string>>(new Set());
   const [shaking, setShaking] = useState(false);
+  const [wrongFlash, setWrongFlash] = useState<Cell[]>([]);
   const pointerIdRef = useRef<number | null>(null);
   const sound = soundFromSettings(settings);
 
@@ -146,7 +147,9 @@ export function Grid({
       playErrorSound(sound);
       triggerHaptic(settings.haptics, 'medium');
       setShaking(true);
+      setWrongFlash([...currentCells]);
       setTimeout(() => setShaking(false), 450);
+      setTimeout(() => setWrongFlash([]), 500);
       onWrongAttempt();
     }
 
@@ -199,9 +202,13 @@ export function Grid({
     );
   });
 
+  const trailCells =
+    selecting && currentCells.length >= 2 ? currentCells : wrongFlash;
+  const isWrongTrail = wrongFlash.length >= 2;
+
   const trailPoints =
-    currentCells.length >= 2
-      ? currentCells
+    trailCells.length >= 2
+      ? trailCells
           .map((c) => {
             const p = cellCenterPercent(c, gridSize);
             return `${p.x},${p.y}`;
@@ -217,18 +224,24 @@ export function Grid({
             {foundWordLines}
           </svg>
 
-          {selecting && currentCells.length >= 2 && (
-            <svg className="selection-trail" viewBox="0 0 100 100" preserveAspectRatio="none">
-              <defs>
-                <linearGradient id="trail-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#a78bfa" />
-                  <stop offset="100%" stopColor="#22d3ee" />
-                </linearGradient>
-              </defs>
+          {trailCells.length >= 2 && (
+            <svg
+              className={`selection-trail ${isWrongTrail ? 'wrong' : ''}`}
+              viewBox="0 0 100 100"
+              preserveAspectRatio="none"
+            >
+              {!isWrongTrail && (
+                <defs>
+                  <linearGradient id="trail-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#7c3aed" />
+                    <stop offset="100%" stopColor="#0891b2" />
+                  </linearGradient>
+                </defs>
+              )}
               <polyline
                 points={trailPoints}
                 fill="none"
-                stroke="url(#trail-grad)"
+                stroke={isWrongTrail ? '#ef4444' : 'url(#trail-grad)'}
                 strokeWidth="5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -276,7 +289,11 @@ export function Grid({
                   style={{
                     animationDelay: `${staggerDelay}ms`,
                     ...(isFound
-                      ? { '--found-bg': meta.color, background: meta.color }
+                      ? {
+                          '--found-bg': meta.color,
+                          background: meta.color,
+                          color: '#1a1a24',
+                        }
                       : {}),
                   } as React.CSSProperties}
                 >

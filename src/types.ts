@@ -17,6 +17,7 @@ export type SoundPack = 'classic' | 'minimal' | 'off';
 
 export type Screen =
   | 'home'
+  | 'puzzles'
   | 'categories'
   | 'game'
   | 'settings'
@@ -25,6 +26,8 @@ export type Screen =
   | 'atlas'
   | 'weekly'
   | 'packs';
+
+export type PuzzleTab = 'categories' | 'packs' | 'atlas';
 
 export interface Category {
   id: CategoryId;

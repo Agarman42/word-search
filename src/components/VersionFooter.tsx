@@ -4,7 +4,7 @@ export function VersionFooter() {
   const isDev = import.meta.env.DEV;
 
   return (
-    <footer className="version-footer" aria-label="App version">
+    <footer className="version-footer version-footer-subtle" aria-label="App version">
       <span className="version-brand">Lexis</span>
       <span className="version-sep">·</span>
       <span className="version-number">v{APP_VERSION}</span>

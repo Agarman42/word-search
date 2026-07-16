@@ -6,18 +6,14 @@ import { ScreenHeader } from './ScreenHeader';
 interface AtlasProps {
   stats: Stats;
   onSelectCategory: (category: CategoryId) => void;
+  embedded?: boolean;
 }
 
-export function Atlas({ stats, onSelectCategory }: AtlasProps) {
-  const explored = CATEGORIES.filter((c) => (stats.categoryCompletions[c.id] ?? 0) > 0).length;
+export function Atlas({ stats, onSelectCategory, embedded }: AtlasProps) {
+  const exploredCount = CATEGORIES.filter((c) => (stats.categoryCompletions[c.id] ?? 0) > 0).length;
 
-  return (
-    <div className="screen atlas-screen">
-      <ScreenHeader
-        title="Lexis Atlas"
-        subtitle={`${explored} of ${CATEGORIES.length} regions explored`}
-      />
-
+  const content = (
+    <>
       <div className="atlas-map glass-panel">
         <div className="atlas-map-bg" />
         {CATEGORIES.map((cat) => {
@@ -39,9 +35,7 @@ export function Atlas({ stats, onSelectCategory }: AtlasProps) {
               title={cat.name}
             >
               <span className="atlas-node-icon">{cat.icon}</span>
-              {explored && (
-                <span className="atlas-node-tier">{mastery.icon}</span>
-              )}
+              {explored && <span className="atlas-node-tier">{mastery.icon}</span>}
               <span className="atlas-node-ring" style={{ '--progress': `${progress}%` } as React.CSSProperties} />
             </button>
           );
@@ -64,7 +58,10 @@ export function Atlas({ stats, onSelectCategory }: AtlasProps) {
               <div className="atlas-legend-info">
                 <span className="atlas-legend-name">{cat.name}</span>
                 <div className="atlas-legend-bar">
-                  <div className="atlas-legend-fill" style={{ width: `${progress}%`, background: mastery.color }} />
+                  <div
+                    className="atlas-legend-fill"
+                    style={{ width: `${progress}%`, background: mastery.color }}
+                  />
                 </div>
               </div>
               <span className="atlas-legend-tier">{mastery.icon} {mastery.label}</span>
@@ -73,6 +70,18 @@ export function Atlas({ stats, onSelectCategory }: AtlasProps) {
           );
         })}
       </div>
+    </>
+  );
+
+  if (embedded) return <div className="atlas-embedded">{content}</div>;
+
+  return (
+    <div className="screen atlas-screen">
+      <ScreenHeader
+        title="Lexis Atlas"
+        subtitle={`${exploredCount} of ${CATEGORIES.length} regions explored`}
+      />
+      {content}
     </div>
   );
 }

@@ -1,8 +1,8 @@
+import { useState } from 'react';
 import type { GameMode, Settings as SettingsType, SoundPack } from '../types';
 import { DIFFICULTY_PRESETS, applyDifficultyPreset } from '../lib/difficulty';
 import { getVersionLabel } from '../lib/version';
 import { ScreenHeader } from './ScreenHeader';
-
 
 interface SettingsProps {
   settings: SettingsType;
@@ -32,17 +32,20 @@ const GAME_MODES: { value: GameMode; label: string; desc: string }[] = [
 ];
 
 export function Settings({ settings, onChange }: SettingsProps) {
+  const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [a11yOpen, setA11yOpen] = useState(false);
+
   const applyPreset = (preset: keyof typeof DIFFICULTY_PRESETS) => {
     onChange(applyDifficultyPreset(preset));
   };
 
   return (
     <div className="screen settings-screen">
-      <ScreenHeader title="Settings" subtitle="Customize your experience" />
+      <ScreenHeader title="Settings" subtitle="Quick tweaks below — expand for more" />
 
       <div className="settings-sections">
-        <section className="settings-section">
-          <h3>Difficulty</h3>
+        <section className="settings-section settings-quick">
+          <h3>Quick Settings</h3>
           <div className="setting-options">
             {(Object.keys(DIFFICULTY_PRESETS) as (keyof typeof DIFFICULTY_PRESETS)[]).map((key) => (
               <button
@@ -52,6 +55,54 @@ export function Settings({ settings, onChange }: SettingsProps) {
               >
                 <span className="mode-label">{DIFFICULTY_PRESETS[key].label}</span>
                 <span className="mode-desc">{DIFFICULTY_PRESETS[key].desc}</span>
+              </button>
+            ))}
+          </div>
+
+          <label className="toggle-row">
+            <div className="setting-info">
+              <span className="setting-label">Dark Background</span>
+            </div>
+            <input
+              type="checkbox"
+              checked={!settings.lightBackground}
+              onChange={(e) => onChange({ lightBackground: !e.target.checked })}
+            />
+          </label>
+
+          <label className="toggle-row">
+            <div className="setting-info">
+              <span className="setting-label">Sound Effects</span>
+            </div>
+            <input
+              type="checkbox"
+              checked={settings.sound && settings.soundPack !== 'off'}
+              onChange={(e) =>
+                onChange({
+                  sound: e.target.checked,
+                  soundPack: e.target.checked
+                    ? settings.soundPack === 'off'
+                      ? 'classic'
+                      : settings.soundPack
+                    : 'off',
+                })
+              }
+            />
+          </label>
+
+          <div className="setting-options sound-pack-row">
+            {SOUND_PACKS.map((pack) => (
+              <button
+                key={pack.value}
+                className={`option-btn ${settings.soundPack === pack.value ? 'active' : ''}`}
+                onClick={() =>
+                  onChange({
+                    soundPack: pack.value,
+                    sound: pack.value !== 'off',
+                  })
+                }
+              >
+                {pack.label}
               </button>
             ))}
           </div>
@@ -73,196 +124,155 @@ export function Settings({ settings, onChange }: SettingsProps) {
           </div>
         </section>
 
-        {settings.difficultyPreset === 'custom' && (
-          <section className="settings-section">
-            <h3>Custom</h3>
-            <div className="setting-row">
-              <div className="setting-info">
-                <span className="setting-label">Grid Size</span>
-              </div>
-              <div className="setting-options">
-                {GRID_SIZES.map((size) => (
-                  <button
-                    key={size}
-                    className={`option-btn ${settings.gridSize === size ? 'active' : ''}`}
-                    onClick={() => onChange({ gridSize: size })}
-                  >
-                    {size}×{size}
-                  </button>
-                ))}
-              </div>
+        <section className="settings-section settings-collapsible">
+          <button
+            className="settings-collapse-trigger"
+            onClick={() => setAdvancedOpen((o) => !o)}
+            aria-expanded={advancedOpen}
+          >
+            <h3>Advanced</h3>
+            <span>{advancedOpen ? '▾' : '▸'}</span>
+          </button>
+          {advancedOpen && (
+            <div className="settings-collapse-body">
+              {settings.difficultyPreset === 'custom' && (
+                <>
+                  <div className="setting-row">
+                    <span className="setting-label">Grid Size</span>
+                    <div className="setting-options">
+                      {GRID_SIZES.map((size) => (
+                        <button
+                          key={size}
+                          className={`option-btn ${settings.gridSize === size ? 'active' : ''}`}
+                          onClick={() => onChange({ gridSize: size })}
+                        >
+                          {size}×{size}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="setting-row">
+                    <span className="setting-label">Word Count</span>
+                    <div className="setting-options">
+                      {WORD_COUNTS.map((count) => (
+                        <button
+                          key={count}
+                          className={`option-btn ${settings.wordCount === count ? 'active' : ''}`}
+                          onClick={() => onChange({ wordCount: count })}
+                        >
+                          {count}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <label className="toggle-row">
+                    <div className="setting-info">
+                      <span className="setting-label">Allow Backwards</span>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={settings.allowBackwards}
+                      onChange={(e) => onChange({ allowBackwards: e.target.checked })}
+                    />
+                  </label>
+                </>
+              )}
+              {settings.difficultyPreset !== 'custom' && (
+                <p className="settings-hint">Switch difficulty to Custom to tune grid size and word count.</p>
+              )}
+              <label className="toggle-row">
+                <div className="setting-info">
+                  <span className="setting-label">Did You Know Facts</span>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={settings.showFacts}
+                  onChange={(e) => onChange({ showFacts: e.target.checked })}
+                />
+              </label>
+              <label className="toggle-row">
+                <div className="setting-info">
+                  <span className="setting-label">Reduce Motion</span>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={settings.reduceMotion}
+                  onChange={(e) => onChange({ reduceMotion: e.target.checked })}
+                />
+              </label>
             </div>
-            <div className="setting-row">
-              <div className="setting-info">
-                <span className="setting-label">Word Count</span>
-              </div>
-              <div className="setting-options">
-                {WORD_COUNTS.map((count) => (
-                  <button
-                    key={count}
-                    className={`option-btn ${settings.wordCount === count ? 'active' : ''}`}
-                    onClick={() => onChange({ wordCount: count })}
-                  >
-                    {count}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <label className="toggle-row">
-              <div className="setting-info">
-                <span className="setting-label">Allow Backwards</span>
-                <span className="setting-desc">Words can run in reverse directions</span>
-              </div>
-              <input
-                type="checkbox"
-                checked={settings.allowBackwards}
-                onChange={(e) => onChange({ allowBackwards: e.target.checked })}
-              />
-            </label>
-          </section>
-        )}
-
-        <section className="settings-section">
-          <h3>Accessibility</h3>
-          <label className="toggle-row">
-            <div className="setting-info">
-              <span className="setting-label">Colorblind Patterns</span>
-              <span className="setting-desc">Patterns on found words, not just color</span>
-            </div>
-            <input
-              type="checkbox"
-              checked={settings.colorblindMode}
-              onChange={(e) => onChange({ colorblindMode: e.target.checked })}
-            />
-          </label>
-          <label className="toggle-row">
-            <div className="setting-info">
-              <span className="setting-label">High Contrast</span>
-            </div>
-            <input
-              type="checkbox"
-              checked={settings.highContrast}
-              onChange={(e) => onChange({ highContrast: e.target.checked })}
-            />
-          </label>
-          <div className="setting-row">
-            <div className="setting-info">
-              <span className="setting-label">Letter Size</span>
-            </div>
-            <div className="setting-options">
-              {FONT_SCALES.map((s) => (
-                <button
-                  key={s.value}
-                  className={`option-btn ${settings.fontScale === s.value ? 'active' : ''}`}
-                  onClick={() => onChange({ fontScale: s.value })}
-                >
-                  {s.label}
-                </button>
-              ))}
-            </div>
-          </div>
-          <label className="toggle-row">
-            <div className="setting-info">
-              <span className="setting-label">One-Hand Mode</span>
-              <span className="setting-desc">Word list positioned for thumb reach</span>
-            </div>
-            <input
-              type="checkbox"
-              checked={settings.oneHandMode}
-              onChange={(e) => onChange({ oneHandMode: e.target.checked })}
-            />
-          </label>
+          )}
         </section>
 
-        <section className="settings-section">
-          <h3>Appearance</h3>
-          <label className="toggle-row">
-            <div className="setting-info">
-              <span className="setting-label">Dark Background</span>
-              <span className="setting-desc">White background is the default</span>
+        <section className="settings-section settings-collapsible">
+          <button
+            className="settings-collapse-trigger"
+            onClick={() => setA11yOpen((o) => !o)}
+            aria-expanded={a11yOpen}
+          >
+            <h3>Accessibility</h3>
+            <span>{a11yOpen ? '▾' : '▸'}</span>
+          </button>
+          {a11yOpen && (
+            <div className="settings-collapse-body">
+              <label className="toggle-row">
+                <div className="setting-info">
+                  <span className="setting-label">Colorblind Patterns</span>
+                  <span className="setting-desc">Patterns on found words, not just color</span>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={settings.colorblindMode}
+                  onChange={(e) => onChange({ colorblindMode: e.target.checked })}
+                />
+              </label>
+              <label className="toggle-row">
+                <div className="setting-info">
+                  <span className="setting-label">High Contrast</span>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={settings.highContrast}
+                  onChange={(e) => onChange({ highContrast: e.target.checked })}
+                />
+              </label>
+              <div className="setting-row">
+                <span className="setting-label">Letter Size</span>
+                <div className="setting-options">
+                  {FONT_SCALES.map((s) => (
+                    <button
+                      key={s.value}
+                      className={`option-btn ${settings.fontScale === s.value ? 'active' : ''}`}
+                      onClick={() => onChange({ fontScale: s.value })}
+                    >
+                      {s.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <label className="toggle-row">
+                <div className="setting-info">
+                  <span className="setting-label">One-Hand Mode</span>
+                  <span className="setting-desc">Word list positioned for thumb reach</span>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={settings.oneHandMode}
+                  onChange={(e) => onChange({ oneHandMode: e.target.checked })}
+                />
+              </label>
+              <label className="toggle-row">
+                <div className="setting-info">
+                  <span className="setting-label">Haptic Feedback</span>
+                </div>
+                <input
+                  type="checkbox"
+                  checked={settings.haptics}
+                  onChange={(e) => onChange({ haptics: e.target.checked })}
+                />
+              </label>
             </div>
-            <input
-              type="checkbox"
-              checked={!settings.lightBackground}
-              onChange={(e) => onChange({ lightBackground: !e.target.checked })}
-            />
-          </label>
-        </section>
-
-        <section className="settings-section">
-          <h3>Preferences</h3>
-          <label className="toggle-row">
-            <div className="setting-info">
-              <span className="setting-label">Did You Know Facts</span>
-            </div>
-            <input
-              type="checkbox"
-              checked={settings.showFacts}
-              onChange={(e) => onChange({ showFacts: e.target.checked })}
-            />
-          </label>
-          <label className="toggle-row">
-            <div className="setting-info">
-              <span className="setting-label">Haptic Feedback</span>
-            </div>
-            <input
-              type="checkbox"
-              checked={settings.haptics}
-              onChange={(e) => onChange({ haptics: e.target.checked })}
-            />
-          </label>
-          <label className="toggle-row">
-            <div className="setting-info">
-              <span className="setting-label">Sound Effects</span>
-            </div>
-            <input
-              type="checkbox"
-              checked={settings.sound && settings.soundPack !== 'off'}
-              onChange={(e) =>
-                onChange({
-                  sound: e.target.checked,
-                  soundPack: e.target.checked
-                    ? settings.soundPack === 'off'
-                      ? 'classic'
-                      : settings.soundPack
-                    : 'off',
-                })
-              }
-            />
-          </label>
-          <div className="setting-row">
-            <div className="setting-info">
-              <span className="setting-label">Sound Pack</span>
-              <span className="setting-desc">Choose your audio style</span>
-            </div>
-            <div className="setting-options sound-pack-options">
-              {SOUND_PACKS.map((pack) => (
-                <button
-                  key={pack.value}
-                  className={`mode-btn compact ${settings.soundPack === pack.value ? 'active' : ''}`}
-                  onClick={() =>
-                    onChange({
-                      soundPack: pack.value,
-                      sound: pack.value !== 'off',
-                    })
-                  }
-                >
-                  <span className="mode-label">{pack.label}</span>
-                  <span className="mode-desc">{pack.desc}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-          <label className="toggle-row">
-            <div className="setting-info">
-              <span className="setting-label">Reduce Motion</span>
-            </div>
-            <input
-              type="checkbox"
-              checked={settings.reduceMotion}
-              onChange={(e) => onChange({ reduceMotion: e.target.checked })}
-            />
-          </label>
+          )}
         </section>
 
         <section className="settings-section settings-about">
