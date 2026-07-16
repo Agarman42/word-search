@@ -26,6 +26,7 @@ interface GameCompleteProps {
   playAgainLabel?: string;
   onContinue: () => void;
   continueLabel?: string;
+  onMainMenu: () => void;
 }
 
 export function GameComplete({
@@ -48,6 +49,7 @@ export function GameComplete({
   playAgainLabel = 'Play again',
   onContinue,
   continueLabel = 'Continue',
+  onMainMenu,
 }: GameCompleteProps) {
   const headline = isBlitz ? 'Blitz complete!' : 'You found them all!';
 
@@ -136,6 +138,9 @@ export function GameComplete({
           )}
           <button className="btn btn-primary btn-glow btn-complete-primary" onClick={onContinue}>
             {continueLabel}
+          </button>
+          <button className="btn btn-glass btn-complete-home" onClick={onMainMenu}>
+            Main menu
           </button>
         </div>
       </div>

@@ -49,6 +49,7 @@ interface GameProps {
   initialLayoutKey?: number;
   /** After complete: next pack level, new free-play layout, or exit daily. */
   onContinueNext: () => void;
+  onMainMenu: () => void;
   hasNextPackLevel?: boolean;
 }
 
@@ -90,6 +91,7 @@ export function Game({
   onToggleLight,
   initialLayoutKey = 0,
   onContinueNext,
+  onMainMenu,
   hasNextPackLevel = false,
 }: GameProps) {
   const isPack = packId != null && packLevel != null;
@@ -576,7 +578,7 @@ export function Game({
               : undefined
           }
           onPlayAgain={canShuffle ? handleNewLayout : undefined}
-          playAgainLabel={isPack ? 'New layout' : 'Play again'}
+          playAgainLabel="New layout"
           onContinue={onContinueNext}
           continueLabel={
             isPack
@@ -587,6 +589,7 @@ export function Game({
                 ? 'Done'
                 : 'Next puzzle'
           }
+          onMainMenu={onMainMenu}
         />
       )}
 

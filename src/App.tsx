@@ -162,6 +162,15 @@ export default function App() {
     }
   };
 
+  const handleMainMenu = () => {
+    if (unlockQueue[0]) dismissUnlock();
+    setActiveCategory(null);
+    setIsDaily(false);
+    setChallengeSeed(undefined);
+    setPackSession(null);
+    navigateTo('home');
+  };
+
   /** After completing a puzzle: next level / next free puzzle / leave daily. */
   const handleGameContinue = () => {
     if (unlockQueue[0]) dismissUnlock();
@@ -309,6 +318,7 @@ export default function App() {
             onDismissInstall={dismissCompleteNudge}
             onToggleLight={(v) => patchSettings({ lightBackground: v })}
             onContinueNext={handleGameContinue}
+            onMainMenu={handleMainMenu}
             hasNextPackLevel={
               !!packSession &&
               !!getPack(packSession.packId) &&

@@ -2405,6 +2405,13 @@ html.theme-dark .seasonal-desc { color: var(--text-muted); }
 .complete-actions { flex-direction: column; gap: 8px; width: 100%; }
 .complete-actions .btn { width: 100%; justify-content: center; }
 
+.btn-complete-home {
+  margin-top: 4px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  border-style: dashed;
+}
+
 /* ── v1.4 Features ── */
 
 .found-words-overlay {
