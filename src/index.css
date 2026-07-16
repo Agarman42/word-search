@@ -37,7 +37,7 @@
   --shadow-glow: 0 0 40px rgba(139, 92, 246, 0.15);
 }
 
-.theme-dark {
+html.theme-dark {
   --bg: #030306;
   --bg-elevated: #0c0c12;
   --surface: rgba(255, 255, 255, 0.04);
@@ -74,12 +74,16 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 
+html,
 body {
   font-family: var(--font);
   background: var(--bg);
   color: var(--text);
   line-height: 1.5;
   min-height: 100dvh;
+}
+
+body {
   overflow-x: hidden;
 }
 
@@ -164,6 +168,8 @@ body {
   max-width: 520px;
   margin: 0 auto;
   position: relative;
+  background: var(--bg);
+  color: var(--text);
 }
 
 .app-main {
@@ -207,11 +213,17 @@ body {
 }
 
 .glass-panel {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: var(--radius);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+html.theme-dark .glass-panel {
   background: var(--glass);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--glass-border);
-  border-radius: var(--radius);
   box-shadow: var(--shadow-sm);
 }
 
@@ -251,7 +263,7 @@ body {
   width: 88px;
   height: 88px;
   border-radius: 50%;
-  border: 1px solid rgba(167, 139, 250, 0.2);
+  border: 1px solid rgba(109, 40, 217, 0.2);
   animation: ringPulse 3s ease-in-out infinite;
 }
 
@@ -287,7 +299,7 @@ body {
   font-weight: 600;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--accent-light);
+  color: #6d28d9;
   margin-bottom: 6px;
 }
 
@@ -295,7 +307,8 @@ body {
   font-size: 3.25rem;
   font-weight: 700;
   letter-spacing: -0.04em;
-  background: linear-gradient(160deg, #1a1a24 20%, #6d28d9 60%, #0891b2 100%);
+  color: #1e1b4b;
+  background: linear-gradient(160deg, #1e1b4b 0%, #5b21b6 55%, #0891b2 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -368,14 +381,24 @@ body {
 }
 
 .btn-glass {
-  background: var(--glass);
-  backdrop-filter: blur(16px);
+  background: #f9fafb;
   color: var(--text);
   padding: 16px 20px;
-  border: 1px solid var(--glass-border);
+  border: 1px solid #e5e7eb;
 }
 
 .btn-glass:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+}
+
+html.theme-dark .btn-glass {
+  background: var(--glass);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+}
+
+html.theme-dark .btn-glass:hover {
   background: var(--surface-hover);
   border-color: var(--border-strong);
 }
@@ -388,14 +411,19 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.2);
   border-radius: 12px;
   flex-shrink: 0;
   font-size: 1.2rem;
 }
 
+.btn-glass .btn-icon-wrap {
+  background: #ede9fe;
+  color: #5b21b6;
+}
+
 .daily-icon-wrap {
-  background: rgba(251, 191, 36, 0.12);
+  background: #fef3c7;
 }
 
 .btn-text { flex: 1; min-width: 0; }
@@ -409,15 +437,24 @@ body {
 .btn-sublabel {
   display: block;
   font-size: 0.78rem;
-  opacity: 0.65;
+  opacity: 0.7;
   font-weight: 400;
   margin-top: 1px;
 }
 
+.btn-glass .btn-sublabel {
+  color: var(--text-muted);
+  opacity: 1;
+}
+
 .btn-arrow {
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--text-muted);
   font-size: 1.1rem;
   flex-shrink: 0;
+}
+
+.btn-primary .btn-arrow {
+  color: rgba(255, 255, 255, 0.7);
 }
 
 .daily-btn.completed { opacity: 0.7; }
@@ -462,10 +499,7 @@ body {
   font-size: 1.6rem;
   font-weight: 700;
   letter-spacing: -0.02em;
-  background: linear-gradient(135deg, var(--text), var(--accent-light));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #1e1b4b;
 }
 
 .stat-value-sm { font-size: 1.2rem; }
@@ -1653,11 +1687,6 @@ body {
   color: white;
 }
 
-.btn-glass {
-  background: rgba(0, 0, 0, 0.03);
-  border-color: rgba(0, 0, 0, 0.1);
-}
-
 .word-chip {
   background: rgba(0, 0, 0, 0.04);
   border-color: rgba(0, 0, 0, 0.08);
@@ -1672,10 +1701,22 @@ body {
   opacity: 1;
 }
 
-.theme-dark .hero-title {
+html.theme-dark .hero-eyebrow {
+  color: var(--accent-light);
+}
+
+html.theme-dark .hero-title {
   background: linear-gradient(160deg, #fff 20%, #c4b5fd 50%, #67e8f9 100%);
   -webkit-background-clip: text;
   background-clip: text;
+}
+
+html.theme-dark .stat-value {
+  background: linear-gradient(135deg, var(--text), var(--accent-light));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
 }
 
 .theme-dark .grid-cell {
@@ -1715,14 +1756,21 @@ body {
   align-items: center;
   gap: 10px;
   padding: 8px 12px;
-  border: 1px solid var(--glass-border);
+  border: 1px solid #e5e7eb;
   border-radius: 24px;
-  background: var(--glass);
-  backdrop-filter: blur(12px);
+  background: #ffffff;
   cursor: pointer;
   font-family: var(--font);
   color: var(--text);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+html.theme-dark .theme-toggle {
+  border-color: var(--glass-border);
+  background: var(--glass);
+  backdrop-filter: blur(12px);
+  box-shadow: none;
 }
 
 .theme-toggle.compact {
@@ -1867,11 +1915,23 @@ body {
   padding: 12px 14px;
   margin-bottom: 16px;
   border-left: 3px solid var(--season-color, var(--accent));
+  background: #fffbeb !important;
+  border-color: #fde68a !important;
+  border-left-color: var(--season-color, #f59e0b) !important;
 }
 
 .seasonal-icon { font-size: 1.4rem; }
-.seasonal-name { display: block; font-weight: 600; font-size: 0.88rem; }
-.seasonal-desc { display: block; font-size: 0.75rem; color: var(--text-muted); }
+.seasonal-name { display: block; font-weight: 600; font-size: 0.88rem; color: #92400e; }
+.seasonal-desc { display: block; font-size: 0.75rem; color: #b45309; }
+
+html.theme-dark .seasonal-banner {
+  background: var(--glass) !important;
+  border-color: var(--glass-border) !important;
+  border-left-color: var(--season-color, var(--accent)) !important;
+}
+
+html.theme-dark .seasonal-name { color: var(--text); }
+html.theme-dark .seasonal-desc { color: var(--text-muted); }
 
 /* Daily commentary */
 .daily-commentary {
@@ -2459,6 +2519,15 @@ body {
   padding: 12px 14px;
   margin-bottom: 14px;
   border-left: 3px solid var(--cyan);
+  background: #f0fdfa !important;
+  border-color: #ccfbf1 !important;
+  border-left-color: var(--cyan) !important;
+}
+
+html.theme-dark .install-prompt {
+  background: var(--glass) !important;
+  border-color: var(--glass-border) !important;
+  border-left-color: var(--cyan) !important;
 }
 
 .install-prompt-text {

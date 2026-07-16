@@ -62,9 +62,9 @@ export function LogoMark({ size = 48 }: { size?: number }) {
           <stop offset="1" stopColor="#22d3ee" />
         </linearGradient>
       </defs>
-      <rect x="2" y="2" width="44" height="44" rx="14" fill="url(#logo-grad)" opacity="0.15" />
-      <rect x="2" y="2" width="44" height="44" rx="14" stroke="url(#logo-grad)" strokeWidth="1.5" opacity="0.6" />
-      <text x="24" y="33" textAnchor="middle" fontFamily="Sora, system-ui" fontSize="26" fontWeight="700" fill="url(#logo-grad)">L</text>
+      <rect x="2" y="2" width="44" height="44" rx="14" fill="#ede9fe" />
+      <rect x="2" y="2" width="44" height="44" rx="14" stroke="#7c3aed" strokeWidth="1.5" />
+      <text x="24" y="33" textAnchor="middle" fontFamily="Sora, system-ui" fontSize="26" fontWeight="700" fill="#5b21b6">L</text>
     </svg>
   );
 }

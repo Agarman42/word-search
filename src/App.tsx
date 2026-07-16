@@ -42,6 +42,7 @@ export default function App() {
   const { canInstall, install, dismiss } = useInstallPrompt();
 
   useEffect(() => {
+    document.documentElement.classList.toggle('theme-dark', !lightBackground);
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.setAttribute('content', lightBackground ? '#ffffff' : '#030306');
   }, [lightBackground]);
@@ -104,7 +105,6 @@ export default function App() {
         'app',
         state.settings.reduceMotion && 'reduce-motion',
         state.settings.highContrast && 'high-contrast',
-        lightBackground ? 'theme-light' : 'theme-dark',
       ].filter(Boolean).join(' ')}
       data-screen={screen}
     >
