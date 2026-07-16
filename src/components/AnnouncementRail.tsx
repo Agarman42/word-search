@@ -20,6 +20,7 @@ interface AnnouncementRailProps {
   dailyCompleted: boolean;
   onDaily: () => void;
   onDismissDailyNudge: () => void;
+  onSeasonalPlay: () => void;
 }
 
 function getAnnouncements(props: AnnouncementRailProps): AnnouncementType[] {
@@ -87,6 +88,9 @@ export function AnnouncementRail(props: AnnouncementRailProps) {
             <span className="announce-title">{season.name}</span>
             <span className="announce-desc">{season.description}</span>
           </div>
+          <button className="btn btn-primary btn-sm" onClick={props.onSeasonalPlay}>
+            {season.ctaLabel}
+          </button>
           <button
             className="announce-dismiss"
             onClick={() => {
@@ -119,11 +123,12 @@ export function AnnouncementRail(props: AnnouncementRailProps) {
                     setInboxOpen(false);
                     if (type === 'daily') props.onDaily();
                     if (type === 'install') props.onInstall();
+                    if (type === 'seasonal') props.onSeasonalPlay();
                   }}
                 >
                   {type === 'install' && `Install ${APP_NAME} on your device`}
                   {type === 'daily' && `Play Daily #${getDailyNumber(today)}`}
-                  {type === 'seasonal' && season?.name}
+                  {type === 'seasonal' && (season ? `${season.ctaLabel} — ${season.name}` : 'Seasonal quest')}
                 </button>
               ))}
             </div>

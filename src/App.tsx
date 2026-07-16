@@ -4,6 +4,7 @@ import { todayString } from './lib/rng';
 import { useAppState } from './hooks/useAppState';
 import { getDailyCategory } from './lib/daily';
 import { getPack } from './lib/packs';
+import { getActiveSeason, resolveSeasonalPlay } from './lib/seasonal';
 import { parseChallengeFromHash, clearChallengeHash } from './lib/challenge';
 import { hasCompletedOnboarding } from './lib/onboarding';
 import { shouldShowDailyNudge } from './lib/dailyNudge';
@@ -197,6 +198,18 @@ export default function App() {
     startGame(getDailyCategory(todayString()), true);
   };
 
+  const handleSeasonalPlay = () => {
+    const season = getActiveSeason();
+    if (!season) return;
+    const target = resolveSeasonalPlay(season, state.stats.packProgress);
+    if (!target) return;
+    if (target.type === 'pack') {
+      startPackGame(target.packId, target.level, target.category);
+    } else {
+      startGame(target.category);
+    }
+  };
+
   const handleInstall = async () => {
     const accepted = await install();
     if (accepted) dismiss();
@@ -252,6 +265,7 @@ export default function App() {
             installMode={installMode}
             onInstall={handleInstall}
             onDismissInstall={dismiss}
+            onSeasonalPlay={handleSeasonalPlay}
           />
         )}
         {screen === 'puzzles' && (

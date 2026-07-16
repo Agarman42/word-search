@@ -40,6 +40,7 @@ interface HomeProps {
   installMode?: InstallMode | null;
   onInstall: () => void;
   onDismissInstall: () => void;
+  onSeasonalPlay: () => void;
 }
 
 export function Home({
@@ -60,6 +61,7 @@ export function Home({
   installMode,
   onInstall,
   onDismissInstall,
+  onSeasonalPlay,
 }: HomeProps) {
   const today = todayString();
   const dailyCat = getDailyCategory(today);
@@ -85,6 +87,7 @@ export function Home({
           dailyCompleted={dailyCompleted}
           onDaily={onDaily}
           onDismissDailyNudge={onDismissDailyNudge}
+          onSeasonalPlay={onSeasonalPlay}
         />
 
         <div className="home-hero-card panel-card">
