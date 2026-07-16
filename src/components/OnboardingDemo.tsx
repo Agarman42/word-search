@@ -87,7 +87,7 @@ export function OnboardingDemo({ mode, onSuccess }: OnboardingDemoProps) {
           ? done
             ? 'Nice! You found CAT.'
             : 'Try swiping C → A → T on the grid'
-          : 'Try a wrong swipe — you can undo in real puzzles'}
+          : 'Drag across random letters — see the brief flash? In real puzzles, tap "Don\'t count it" if it wasn\'t a word you meant to find.'}
       </p>
       <div
         ref={gridRef}

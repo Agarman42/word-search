@@ -3542,7 +3542,26 @@ html.theme-dark .hero-premium .hero-title {
   animation: toastIn 0.3s var(--ease-spring);
 }
 
-.toast-undo { border-left: 3px solid #ef4444; }
+.toast-undo { border-left: 3px solid #f59e0b; }
+
+.toast-miss-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  text-align: left;
+}
+
+.toast-miss-text strong {
+  font-weight: 600;
+  font-size: var(--text-body);
+}
+
+.toast-miss-sub {
+  font-size: var(--text-micro);
+  color: var(--text-muted);
+  font-weight: 400;
+}
 .toast-found { border-left: 3px solid #22c55e; }
 .toast-fact {
   font-size: var(--text-caption);

@@ -317,8 +317,13 @@ export function Game({
     toasts.push({
       id: 'undo',
       priority: 'undo',
-      content: <span>Wrong swipe</span>,
-      action: { label: 'Undo', onClick: handleUndo },
+      content: (
+        <span className="toast-miss-text">
+          <strong>Not a word</strong>
+          <span className="toast-miss-sub">Won&apos;t count if you dismiss in time</span>
+        </span>
+      ),
+      action: { label: "Don't count it", onClick: handleUndo },
     });
   }
   if (lastFound) {

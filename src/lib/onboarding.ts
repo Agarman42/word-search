@@ -1,6 +1,6 @@
 import { APP_NAME } from './brand';
 
-const ONBOARDING_KEY = 'lexis-onboarding-v2';
+const ONBOARDING_KEY = 'lexis-onboarding-v3';
 
 export function hasCompletedOnboarding(): boolean {
   try {
@@ -33,12 +33,12 @@ export const ONBOARDING_STEPS: {
   {
     type: 'demo-swipe',
     title: 'Swipe to find words',
-    body: 'Press a letter and drag in a straight line to highlight a word.',
+    body: 'Press a letter and drag in a straight line. Only lines that match a word on the list count as found.',
   },
   {
     type: 'demo-wrong',
-    title: 'Made a mistake?',
-    body: 'Wrong swipes can be undone before they count against you.',
+    title: 'Highlighted something that isn\'t a word?',
+    body: 'No problem — that happens. You\'ll get a quick prompt. Tap "Don\'t count it" and it won\'t touch your stats. Misses only affect accuracy and the Flawless badge. You can always finish the puzzle.',
   },
   {
     type: 'explore',

@@ -8,7 +8,7 @@ export const ACHIEVEMENT_DEFS: Omit<Achievement, 'unlockedAt'>[] = [
   { id: 'speed_5', title: 'Quick Thinker', description: 'Finish a timed puzzle under 5 minutes', icon: '⏱️' },
   { id: 'speed_3', title: 'Lightning', description: 'Finish a timed puzzle under 3 minutes', icon: '⚡' },
   { id: 'speed_2', title: 'Blazing', description: 'Finish a timed puzzle under 2 minutes', icon: '🔥' },
-  { id: 'perfect', title: 'Flawless', description: 'Complete a puzzle with zero wrong swipes', icon: '💎' },
+  { id: 'perfect', title: 'Flawless', description: 'Finish a puzzle with zero misses', icon: '💎' },
   { id: 'streak_3', title: 'On a Roll', description: '3-day daily streak', icon: '📅' },
   { id: 'streak_7', title: 'Week Warrior', description: '7-day daily streak', icon: '🗓️' },
   { id: 'streak_30', title: 'Dedicated', description: '30-day daily streak', icon: '🏆' },
