@@ -10,6 +10,7 @@ interface WordListProps {
   hintWord?: string | null;
   favoriteWords?: string[];
   onToggleFavorite?: (word: string) => void;
+  onWordTap?: (word: PlacedWord) => void;
 }
 
 export function WordList({
@@ -20,6 +21,7 @@ export function WordList({
   hintWord,
   favoriteWords = [],
   onToggleFavorite,
+  onWordTap,
 }: WordListProps) {
   const [expanded, setExpanded] = useState(
     () => typeof window !== 'undefined' && window.matchMedia('(min-width: 600px)').matches,
@@ -34,6 +36,11 @@ export function WordList({
     : sorted;
 
   const handleToggle = () => setExpanded((e) => !e);
+
+  const handleWordTap = (word: PlacedWord) => {
+    if (foundWords.has(word.word)) return;
+    onWordTap?.(word);
+  };
 
   return (
     <div className={`word-list panel-card ${settings.oneHandMode ? 'one-hand' : ''} ${expanded ? 'expanded' : 'collapsed'}`}>
@@ -54,7 +61,14 @@ export function WordList({
       {!expanded && !zenMode && hiddenCount > 0 && (
         <button className="word-list-peek" onClick={handleToggle} aria-label="Expand word list">
           {unfound.slice(0, 3).map((w) => (
-            <span key={w.word} className={`word-peek-chip ${hintWord === w.word ? 'hint' : ''}`}>
+            <span
+              key={w.word}
+              className={`word-peek-chip ${hintWord === w.word ? 'hint' : ''}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                handleWordTap(w);
+              }}
+            >
               {w.word}
             </span>
           ))}
@@ -72,6 +86,9 @@ export function WordList({
           {zenMode && hiddenCount > 0 && foundCount > 0 && (
             <p className="zen-remaining">{hiddenCount} still hidden</p>
           )}
+          {!zenMode && (
+            <p className="word-list-hint">Tap a word to pulse its location on the grid</p>
+          )}
           <ul className="word-list-columns">
             {visibleWords.map((w) => {
               const found = foundWords.has(w.word);
@@ -85,12 +102,20 @@ export function WordList({
                     'word-list-item',
                     found && 'found',
                     isHint && 'hint-word',
+                    !found && onWordTap && 'tappable',
                     w.word.length >= 10 && 'long',
                   ]
                     .filter(Boolean)
                     .join(' ')}
                 >
-                  <span className="word-list-text">{w.word}</span>
+                  <button
+                    type="button"
+                    className="word-list-text-btn"
+                    onClick={() => handleWordTap(w)}
+                    disabled={found || !onWordTap}
+                  >
+                    <span className="word-list-text">{w.word}</span>
+                  </button>
                   {found && onToggleFavorite && (
                     <button
                       className={`fav-btn ${isFav ? 'active' : ''}`}

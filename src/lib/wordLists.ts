@@ -74,6 +74,10 @@ export function getCategory(id: CategoryId): Category {
   return CATEGORIES.find((c) => c.id === id)!;
 }
 
+export function getSampleWords(category: CategoryId, count = 3): string[] {
+  return WORD_BANKS[category].slice(0, count);
+}
+
 export function getWordsForCategory(
   category: CategoryId,
   count: number,

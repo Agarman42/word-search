@@ -62,7 +62,15 @@ export default function App() {
   const prevScreen = useRef(screen);
 
   const { lightBackground } = state.settings;
-  const { canInstall, install, dismiss } = useInstallPrompt();
+  const {
+    canInstall,
+    installMode,
+    isStandalone,
+    install,
+    dismiss,
+    canShowCompleteNudge,
+    dismissCompleteNudge,
+  } = useInstallPrompt();
   const dailyCompleted = state.stats.completedDailyDates.includes(todayString());
 
   useEffect(() => {
@@ -153,6 +161,13 @@ export default function App() {
     if (accepted) dismiss();
   };
 
+  const handleOnboardingComplete = () => {
+    setShowOnboarding(false);
+    if (state.stats.totalPuzzlesCompleted === 0) {
+      handleDaily();
+    }
+  };
+
   const handleNavigate = (target: Screen) => {
     if (target === 'categories' || target === 'atlas' || target === 'packs') {
       const tab: PuzzleTab =
@@ -193,6 +208,7 @@ export default function App() {
             showDailyNudge={showDailyNudge}
             onDismissDailyNudge={() => setShowDailyNudge(false)}
             canInstall={canInstall}
+            installMode={installMode}
             onInstall={handleInstall}
             onDismissInstall={dismiss}
           />
@@ -226,11 +242,23 @@ export default function App() {
             onToggleFavorite={onToggleFavorite}
             favoriteWords={state.stats.favoriteWords}
             blitzHighScore={state.stats.blitzHighScore}
+            dailyStreak={state.stats.dailyStreak}
+            totalPuzzlesCompleted={state.stats.totalPuzzlesCompleted}
             newAchievement={unlockQueue[0] ?? null}
+            showInstallNudge={canShowCompleteNudge}
+            installMode={installMode}
+            onInstall={handleInstall}
+            onDismissInstall={dismissCompleteNudge}
           />
         )}
         {screen === 'settings' && (
-          <Settings settings={state.settings} onChange={patchSettings} />
+          <Settings
+            settings={state.settings}
+            onChange={patchSettings}
+            showInstallInSettings={!isStandalone && !!installMode}
+            installMode={installMode}
+            onInstall={handleInstall}
+          />
         )}
         {screen === 'stats' && <StatsPanel stats={state.stats} />}
         {screen === 'achievements' && (
@@ -240,7 +268,7 @@ export default function App() {
       <VersionFooter />
       <Navigation screen={screen} onNavigate={handleNavigate} />
       {showOnboarding && (
-        <Onboarding onComplete={() => setShowOnboarding(false)} />
+        <Onboarding onComplete={handleOnboardingComplete} />
       )}
       {unlockQueue[0] && screen !== 'game' && (
         <AchievementUnlock achievement={unlockQueue[0]} onDismiss={dismissUnlock} />

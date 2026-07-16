@@ -3,8 +3,8 @@ import type { CategoryId, Cell, PlacedWord, Settings } from '../types';
 import { cellKey, findMatchingWord, getLineCells, getRevealCells } from '../lib/gameLogic';
 import { getCategoryFoundColor } from '../lib/categoryThemes';
 import {
-  playErrorSound,
   playFoundSound,
+  playNotWordSound,
   playRevealTick,
   triggerHaptic,
   triggerHapticByLength,
@@ -19,6 +19,7 @@ interface GridProps {
   settings: Settings;
   category: CategoryId;
   hintCell?: Cell | null;
+  pulseCells?: Cell[];
   onWordFound: (word: PlacedWord) => void;
   onWrongAttempt: () => void;
   onRevealComplete?: (word: PlacedWord) => void;
@@ -49,6 +50,7 @@ export function Grid({
   settings,
   category,
   hintCell,
+  pulseCells = [],
   onWordFound,
   onWrongAttempt,
   onRevealComplete,
@@ -156,12 +158,12 @@ export function Grid({
         onRevealComplete?.(match);
       });
     } else if (matchedCells.length >= 2) {
-      playErrorSound(sound);
-      triggerHaptic(settings.haptics, 'medium');
+      playNotWordSound(sound);
+      triggerHaptic(settings.haptics, 'light');
       setShaking(true);
       setWrongFlash([...matchedCells]);
-      setTimeout(() => setShaking(false), 450);
-      setTimeout(() => setWrongFlash([]), 500);
+      setTimeout(() => setShaking(false), 320);
+      setTimeout(() => setWrongFlash([]), 360);
       onWrongAttempt();
     }
 
@@ -171,6 +173,7 @@ export function Grid({
 
   const selectedSet = new Set(currentCells.map(cellKey));
   const hintKey = hintCell ? cellKey(hintCell) : null;
+  const pulseSet = new Set(pulseCells.map(cellKey));
 
   const revealedKeys = new Set<string>();
   if (revealAnim) {
@@ -276,7 +279,8 @@ export function Grid({
               <polyline
                 points={trailPoints}
                 fill="none"
-                stroke={isWrongTrail ? '#ef4444' : 'url(#trail-grad)'}
+                stroke={isWrongTrail ? 'var(--text-muted)' : 'url(#trail-grad)'}
+                strokeOpacity={isWrongTrail ? 0.55 : 1}
                 strokeWidth="5"
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -318,6 +322,7 @@ export function Grid({
                       isFound && 'found',
                       isRevealing && 'revealing',
                       isHint && 'hint-pulse',
+                      pulseSet.has(key) && 'word-pulse',
                       isFound && settings.colorblindMode && `cb-pattern-${meta.pattern % 6}`,
                     ]
                       .filter(Boolean)

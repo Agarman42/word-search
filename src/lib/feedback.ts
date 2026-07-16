@@ -62,12 +62,12 @@ export function playFoundSound(
   if (!shouldPlay(settings)) return;
   const { soundPack } = settings;
   const note = MELODY_SCALE[wordIndex % MELODY_SCALE.length];
-  const dur = soundPack === 'minimal' ? 0.08 : 0.14;
-  playTone(note, dur, 0.09, 'sine', soundPack);
+  const dur = soundPack === 'minimal' ? 0.07 : 0.12;
+  playTone(note, dur, 0.07, 'sine', soundPack);
   if (soundPack === 'classic') {
-    setTimeout(() => playTone(note * 1.25, 0.12, 0.06, 'sine', soundPack), 60);
+    setTimeout(() => playTone(note * 1.2, 0.1, 0.045, 'sine', soundPack), 55);
     if (wordLength >= 7) {
-      setTimeout(() => playTone(note * 1.5, 0.1, 0.05, 'sine', soundPack), 120);
+      setTimeout(() => playTone(note * 1.45, 0.08, 0.035, 'sine', soundPack), 110);
     }
   }
 }
@@ -87,8 +87,12 @@ export function playCompleteSound(settings: SoundSettings, wordsFound = 12): voi
 }
 
 export function playErrorSound(settings: SoundSettings): void {
+  playNotWordSound(settings);
+}
+
+export function playNotWordSound(settings: SoundSettings): void {
   if (!shouldPlay(settings)) return;
-  playTone(200, settings.soundPack === 'minimal' ? 0.08 : 0.15, 0.05, 'triangle', settings.soundPack);
+  playTone(420, settings.soundPack === 'minimal' ? 0.05 : 0.07, 0.03, 'sine', settings.soundPack);
 }
 
 export function playRevealTick(settings: SoundSettings, step: number): void {

@@ -1,5 +1,8 @@
+import { useState } from 'react';
 import type { Achievement, Stats } from '../types';
+import { APP_NAME } from '../lib/brand';
 import { getAchievementHint } from '../lib/achievementProgress';
+import { copyToClipboard } from '../lib/share';
 import { AchievementIcon } from './Icons';
 import { ScreenHeader } from './ScreenHeader';
 
@@ -9,9 +12,19 @@ interface AchievementsPanelProps {
 }
 
 export function AchievementsPanel({ achievements, stats }: AchievementsPanelProps) {
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const unlocked = achievements.filter((a) => a.unlockedAt);
   const locked = achievements.filter((a) => !a.unlockedAt);
   const pct = Math.round((unlocked.length / achievements.length) * 100);
+
+  const shareAchievement = async (a: Achievement) => {
+    const text = `I unlocked "${a.title}" in ${APP_NAME}! ${a.description}`;
+    const ok = await copyToClipboard(text);
+    if (ok) {
+      setCopiedId(a.id);
+      setTimeout(() => setCopiedId(null), 2000);
+    }
+  };
 
   return (
     <div className="screen achievements-screen">
@@ -34,16 +47,22 @@ export function AchievementsPanel({ achievements, stats }: AchievementsPanelProp
 
       {unlocked.length > 0 && (
         <section className="achievement-section">
-          <h3>Unlocked</h3>
-          <div className="achievement-grid">
+          <h3>Unlocked — tap to share</h3>
+          <div className="achievement-gallery">
             {unlocked.map((a) => (
-              <div key={a.id} className="achievement-card unlocked panel-card">
-                <span className="achievement-icon"><AchievementIcon id={a.id} size={28} /></span>
-                <div className="achievement-info">
-                  <span className="achievement-title">{a.title}</span>
-                  <span className="achievement-desc">{a.description}</span>
-                </div>
-              </div>
+              <button
+                key={a.id}
+                className="achievement-gallery-card panel-card unlocked"
+                onClick={() => shareAchievement(a)}
+              >
+                <span className="achievement-gallery-icon">
+                  <AchievementIcon id={a.id} size={32} />
+                </span>
+                <span className="achievement-gallery-title">{a.title}</span>
+                <span className="achievement-gallery-share">
+                  {copiedId === a.id ? 'Copied!' : 'Share'}
+                </span>
+              </button>
             ))}
           </div>
         </section>

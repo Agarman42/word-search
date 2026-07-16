@@ -1,4 +1,13 @@
 import { useCallback, useEffect, useState } from 'react';
+import {
+  dismissCompleteNudge as persistCompleteNudgeDismiss,
+  dismissInstallPrompt,
+  getInstallMode,
+  isCompleteNudgeDismissed,
+  isInstallDismissed,
+  isStandaloneMode,
+  type InstallMode,
+} from '../lib/install';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -7,13 +16,8 @@ interface BeforeInstallPromptEvent extends Event {
 
 export function useInstallPrompt() {
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
-  const [dismissed, setDismissed] = useState(() => {
-    try {
-      return localStorage.getItem('lexis-install-dismissed') === '1';
-    } catch {
-      return false;
-    }
-  });
+  const [dismissed, setDismissed] = useState(isInstallDismissed);
+  const [completeNudgeDismissed, setCompleteNudgeDismissed] = useState(isCompleteNudgeDismissed);
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -24,12 +28,11 @@ export function useInstallPrompt() {
     return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
 
-  const isStandalone =
-    typeof window !== 'undefined' &&
-    (window.matchMedia('(display-mode: standalone)').matches ||
-      (navigator as Navigator & { standalone?: boolean }).standalone === true);
-
-  const canInstall = !!deferred && !isStandalone && !dismissed;
+  const isStandalone = isStandaloneMode();
+  const installMode: InstallMode | null = getInstallMode(!!deferred);
+  const canInstall = installMode !== null && !dismissed;
+  const canShowCompleteNudge =
+    installMode !== null && !completeNudgeDismissed && !isStandalone;
 
   const install = useCallback(async () => {
     if (!deferred) return false;
@@ -41,12 +44,21 @@ export function useInstallPrompt() {
 
   const dismiss = useCallback(() => {
     setDismissed(true);
-    try {
-      localStorage.setItem('lexis-install-dismissed', '1');
-    } catch {
-      /* ignore */
-    }
+    dismissInstallPrompt();
   }, []);
 
-  return { canInstall, install, dismiss };
+  const dismissCompleteNudge = useCallback(() => {
+    setCompleteNudgeDismissed(true);
+    persistCompleteNudgeDismiss();
+  }, []);
+
+  return {
+    canInstall,
+    installMode,
+    isStandalone,
+    install,
+    dismiss,
+    canShowCompleteNudge,
+    dismissCompleteNudge,
+  };
 }

@@ -2,11 +2,17 @@ import { useState } from 'react';
 import type { GameMode, Settings as SettingsType, SoundPack } from '../types';
 import { DIFFICULTY_PRESETS, applyDifficultyPreset } from '../lib/difficulty';
 import { getVersionLabel } from '../lib/version';
+import type { InstallMode } from '../lib/install';
 import { ScreenHeader } from './ScreenHeader';
+import { HowToPlay } from './HowToPlay';
+import { InstallPrompt } from './InstallPrompt';
 
 interface SettingsProps {
   settings: SettingsType;
   onChange: (patch: Partial<SettingsType>) => void;
+  showInstallInSettings?: boolean;
+  installMode?: InstallMode | null;
+  onInstall?: () => void;
 }
 
 const GRID_SIZES = [8, 10, 12, 15];
@@ -31,9 +37,16 @@ const GAME_MODES: { value: GameMode; label: string; desc: string }[] = [
   { value: 'coop', label: 'Co-op', desc: 'Pass & play — alternate finds' },
 ];
 
-export function Settings({ settings, onChange }: SettingsProps) {
+export function Settings({
+  settings,
+  onChange,
+  showInstallInSettings,
+  installMode,
+  onInstall,
+}: SettingsProps) {
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [a11yOpen, setA11yOpen] = useState(false);
+  const [showHowToPlay, setShowHowToPlay] = useState(false);
 
   const applyPreset = (preset: keyof typeof DIFFICULTY_PRESETS) => {
     onChange(applyDifficultyPreset(preset));
@@ -275,6 +288,27 @@ export function Settings({ settings, onChange }: SettingsProps) {
           )}
         </section>
 
+        <section className="settings-section">
+          <h3>Help</h3>
+          <button className="settings-action-row" onClick={() => setShowHowToPlay(true)}>
+            <span className="settings-action-label">How to play</span>
+            <span className="settings-action-desc">Swipe rules, misses, and tips</span>
+            <span className="settings-action-chevron">→</span>
+          </button>
+        </section>
+
+        {showInstallInSettings && installMode && (
+          <section className="settings-section settings-install">
+            <h3>Install app</h3>
+            <InstallPrompt
+              mode={installMode}
+              onInstall={installMode === 'native' ? onInstall : undefined}
+              compact
+              showDismiss={false}
+            />
+          </section>
+        )}
+
         <section className="settings-section settings-about">
           <h3>About</h3>
           <p className="about-text">
@@ -283,6 +317,8 @@ export function Settings({ settings, onChange }: SettingsProps) {
           <p className="about-version">{getVersionLabel()}</p>
         </section>
       </div>
+
+      {showHowToPlay && <HowToPlay onClose={() => setShowHowToPlay(false)} />}
     </div>
   );
 }

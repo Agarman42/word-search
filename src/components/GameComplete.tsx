@@ -1,7 +1,10 @@
 import type { Achievement } from '../types';
 import { formatTime } from '../lib/gameLogic';
+import { APP_NAME } from '../lib/brand';
+import type { InstallMode } from '../lib/install';
 import { AchievementIcon, IconDiamond, IconTrophy } from './Icons';
 import { CountUp } from './CountUp';
+import { InstallPrompt } from './InstallPrompt';
 
 interface GameCompleteProps {
   isBlitz: boolean;
@@ -13,6 +16,10 @@ interface GameCompleteProps {
   newAchievement?: Achievement | null;
   isDaily: boolean;
   isPack: boolean;
+  showInstallNudge?: boolean;
+  installMode?: InstallMode | null;
+  onInstall?: () => void;
+  onDismissInstall?: () => void;
   onShare?: () => void;
   onCopyChallenge?: () => void;
   onPlayAgain?: () => void;
@@ -29,6 +36,10 @@ export function GameComplete({
   newAchievement,
   isDaily,
   isPack,
+  showInstallNudge,
+  installMode,
+  onInstall,
+  onDismissInstall,
   onShare,
   onCopyChallenge,
   onPlayAgain,
@@ -77,6 +88,18 @@ export function GameComplete({
               <span className="complete-ach-eyebrow">New achievement</span>
               <span className="complete-ach-title">{newAchievement.title}</span>
             </div>
+          </div>
+        )}
+
+        {showInstallNudge && installMode && onDismissInstall && (
+          <div className="complete-install-nudge">
+            <p className="complete-install-label">Enjoying {APP_NAME}? Keep it one tap away.</p>
+            <InstallPrompt
+              mode={installMode}
+              onInstall={installMode === 'native' ? onInstall : undefined}
+              onDismiss={onDismissInstall}
+              compact
+            />
           </div>
         )}
 

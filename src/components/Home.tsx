@@ -5,7 +5,9 @@ import { getContinueLabel, getContinueSession } from '../lib/continueSession';
 import { APP_NAME, APP_TAGLINE } from '../lib/brand';
 import { getCategory } from '../lib/wordLists';
 import { HomeBackground } from './HomeBackground';
+import { HomeMiniPuzzle } from './HomeMiniPuzzle';
 import { AnnouncementRail } from './AnnouncementRail';
+import type { InstallMode } from '../lib/install';
 import {
   CategoryIcon,
   IconCalendar,
@@ -35,6 +37,7 @@ interface HomeProps {
   showDailyNudge: boolean;
   onDismissDailyNudge: () => void;
   canInstall: boolean;
+  installMode?: InstallMode | null;
   onInstall: () => void;
   onDismissInstall: () => void;
 }
@@ -54,6 +57,7 @@ export function Home({
   showDailyNudge,
   onDismissDailyNudge,
   canInstall,
+  installMode,
   onInstall,
   onDismissInstall,
 }: HomeProps) {
@@ -74,6 +78,7 @@ export function Home({
 
         <AnnouncementRail
           canInstall={canInstall}
+          installMode={installMode}
           onInstall={onInstall}
           onDismissInstall={onDismissInstall}
           showDailyNudge={showDailyNudge}
@@ -92,6 +97,8 @@ export function Home({
             <h1 className="hero-title display-font">{APP_NAME}</h1>
             <p className="hero-subtitle">{APP_TAGLINE}</p>
           </header>
+
+          <HomeMiniPuzzle />
 
           <div className="home-hero-cta">
             <button

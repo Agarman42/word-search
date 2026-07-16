@@ -73,6 +73,12 @@ export function getWeekStart(date: Date = new Date()): string {
   return d.toISOString().slice(0, 10);
 }
 
+export interface WeeklyDayActivity {
+  day: string;
+  puzzles: number;
+  words: number;
+}
+
 export interface WeeklyRecapData {
   weekStart: string;
   wordsFound: number;
@@ -80,6 +86,9 @@ export interface WeeklyRecapData {
   dailiesCompleted: number;
   bestStreak: number;
   topCategory: CategoryId | null;
+  dayActivity: WeeklyDayActivity[];
+  bestDay: string | null;
+  suggestedCategory: CategoryId;
 }
 
 export function getWeeklyRecap(stats: Stats): WeeklyRecapData {
@@ -101,6 +110,39 @@ export function getWeeklyRecap(stats: Stats): WeeklyRecapData {
     }
   }
 
+  const dayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const dayActivity: WeeklyDayActivity[] = dayLabels.map((day) => ({
+    day,
+    puzzles: 0,
+    words: 0,
+  }));
+
+  for (const g of weekGames) {
+    const d = new Date(g.completedAt);
+    const idx = d.getDay();
+    dayActivity[idx].puzzles += 1;
+    dayActivity[idx].words += g.wordsFound ?? g.wordCount;
+  }
+
+  let bestDay: string | null = null;
+  let bestDayCount = 0;
+  for (const entry of dayActivity) {
+    if (entry.puzzles > bestDayCount) {
+      bestDayCount = entry.puzzles;
+      bestDay = entry.day;
+    }
+  }
+
+  let suggestedCategory: CategoryId = DAILY_CATEGORIES[0];
+  let fewest = Infinity;
+  for (const cat of DAILY_CATEGORIES) {
+    const count = stats.categoryCompletions[cat] ?? 0;
+    if (count < fewest) {
+      fewest = count;
+      suggestedCategory = cat;
+    }
+  }
+
   return {
     weekStart,
     wordsFound: stats.weekWordsFound,
@@ -108,5 +150,8 @@ export function getWeeklyRecap(stats: Stats): WeeklyRecapData {
     dailiesCompleted: dailies,
     bestStreak: stats.dailyStreak,
     topCategory,
+    dayActivity,
+    bestDay,
+    suggestedCategory,
   };
 }

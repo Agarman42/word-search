@@ -7,11 +7,13 @@ import { getDailyNumber } from '../lib/daily';
 import { todayString } from '../lib/rng';
 import { InstallPrompt } from './InstallPrompt';
 import { IconSun } from './Icons';
+import type { InstallMode } from '../lib/install';
 
 export type AnnouncementType = 'install' | 'daily' | 'seasonal';
 
 interface AnnouncementRailProps {
   canInstall: boolean;
+  installMode?: InstallMode | null;
   onInstall: () => void;
   onDismissInstall: () => void;
   showDailyNudge: boolean;
@@ -44,8 +46,12 @@ export function AnnouncementRail(props: AnnouncementRailProps) {
 
   return (
     <div className="announcement-rail">
-      {active === 'install' && (
-        <InstallPrompt onInstall={props.onInstall} onDismiss={props.onDismissInstall} />
+      {active === 'install' && props.installMode && (
+        <InstallPrompt
+          mode={props.installMode}
+          onInstall={props.installMode === 'native' ? props.onInstall : undefined}
+          onDismiss={props.onDismissInstall}
+        />
       )}
 
       {active === 'daily' && (

@@ -1,6 +1,5 @@
 import { PUZZLE_PACKS } from '../lib/packs';
 import type { CategoryId, Stats } from '../types';
-import { IconPack } from './Icons';
 import { ScreenHeader } from './ScreenHeader';
 
 interface PuzzlePacksProps {
@@ -37,7 +36,7 @@ function PackProgressArc({ pct, color }: { pct: number; color: string }) {
 
 export function PuzzlePacks({ stats, onSelectPack, embedded }: PuzzlePacksProps) {
   const content = (
-    <div className="packs-scroll">
+    <div className="packs-carousel">
       {PUZZLE_PACKS.map((pack) => {
         const progress = stats.packProgress[pack.id] ?? 0;
         const pct = Math.round((progress / pack.puzzleCount) * 100);
@@ -47,20 +46,28 @@ export function PuzzlePacks({ stats, onSelectPack, embedded }: PuzzlePacksProps)
         return (
           <button
             key={pack.id}
-            className={`pack-card-h panel-card ${complete ? 'complete' : ''}`}
-            style={{ '--pack-color': pack.color } as React.CSSProperties}
+            className={`pack-cover-card panel-card ${complete ? 'complete' : ''}`}
+            style={{
+              '--pack-color': pack.color,
+              '--pack-cover': pack.coverGradient,
+            } as React.CSSProperties}
             onClick={() => !complete && onSelectPack(pack.id, nextLevel, pack.category)}
             disabled={complete}
           >
-            <PackProgressArc pct={pct} color={pack.color} />
-            <div className="pack-h-info">
-              <span className="pack-h-name">{pack.name}</span>
-              <span className="pack-h-desc">{pack.description}</span>
-              <span className="pack-h-progress">
-                {complete ? 'Complete' : `${progress}/${pack.puzzleCount}`}
-              </span>
+            <div className="pack-cover-art">
+              <span className="pack-cover-emoji">{pack.icon}</span>
+              <span className="pack-cover-pattern" aria-hidden="true" />
             </div>
-            <span className="pack-h-icon"><IconPack size={20} /></span>
+            <div className="pack-cover-body">
+              <span className="pack-cover-name">{pack.name}</span>
+              <span className="pack-cover-desc">{pack.description}</span>
+              <div className="pack-cover-footer">
+                <PackProgressArc pct={pct} color={pack.color} />
+                <span className="pack-cover-progress">
+                  {complete ? 'Complete ✓' : `${progress}/${pack.puzzleCount} levels`}
+                </span>
+              </div>
+            </div>
           </button>
         );
       })}

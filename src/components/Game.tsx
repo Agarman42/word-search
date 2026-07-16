@@ -18,6 +18,8 @@ import { WordList } from './WordList';
 import { ShareCard } from './ShareCard';
 import { ToastDock, type ToastItem } from './ToastDock';
 import { GameComplete } from './GameComplete';
+import { GridSkeleton } from './GridSkeleton';
+import type { InstallMode } from '../lib/install';
 
 interface GameProps {
   category: CategoryId;
@@ -35,7 +37,13 @@ interface GameProps {
   onToggleFavorite: (word: string) => void;
   favoriteWords: string[];
   blitzHighScore: number;
+  dailyStreak: number;
+  totalPuzzlesCompleted: number;
   newAchievement?: Achievement | null;
+  showInstallNudge?: boolean;
+  installMode?: InstallMode | null;
+  onInstall?: () => void;
+  onDismissInstall?: () => void;
 }
 
 const BLITZ_DURATION_MS = 60000;
@@ -66,7 +74,13 @@ export function Game({
   onToggleFavorite,
   favoriteWords,
   blitzHighScore,
+  dailyStreak,
+  totalPuzzlesCompleted,
   newAchievement,
+  showInstallNudge,
+  installMode,
+  onInstall,
+  onDismissInstall,
 }: GameProps) {
   const isPack = packId != null && packLevel != null;
   const pack = isPack ? getPack(packId) : undefined;
@@ -118,6 +132,9 @@ export function Game({
   const [hintUsed, setHintUsed] = useState(false);
   const [showUndo, setShowUndo] = useState(false);
   const [isLandscape, setIsLandscape] = useState(false);
+  const [gridReady, setGridReady] = useState(false);
+  const [pulseCells, setPulseCells] = useState<Cell[]>([]);
+  const pulseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const startTime = useRef(Date.now());
   const blitzEnded = useRef(false);
   const foundCountRef = useRef(0);
@@ -136,10 +153,27 @@ export function Game({
   }, []);
 
   useEffect(() => {
+    setGridReady(false);
+    const id = requestAnimationFrame(() => setGridReady(true));
+    return () => cancelAnimationFrame(id);
+  }, [seed, category, gridSize, wordCount]);
+
+  useEffect(() => {
     return () => {
       if (undoTimeoutRef.current) clearTimeout(undoTimeoutRef.current);
+      if (pulseTimeoutRef.current) clearTimeout(pulseTimeoutRef.current);
     };
   }, []);
+
+  const handleWordTap = useCallback((word: PlacedWord) => {
+    if (foundWords.has(word.word)) return;
+    if (pulseTimeoutRef.current) clearTimeout(pulseTimeoutRef.current);
+    setPulseCells(word.cells);
+    pulseTimeoutRef.current = setTimeout(() => {
+      setPulseCells([]);
+      pulseTimeoutRef.current = null;
+    }, 1800);
+  }, [foundWords]);
 
   const finishGame = useCallback(
     (wordsFoundCount: number, timeUp = false) => {
@@ -421,17 +455,22 @@ export function Game({
 
       <div className="game-play-area">
         <div className="game-board-wrap">
-          <Grid
-            grid={puzzle.grid}
-            placedWords={puzzle.words}
-            foundWords={foundWords}
-            foundPatterns={foundPatterns}
-            settings={settings}
-            category={category}
-            hintCell={hintCell}
-            onWordFound={handleWordFound}
-            onWrongAttempt={handleWrong}
-          />
+          {!gridReady ? (
+            <GridSkeleton size={gridSize} />
+          ) : (
+            <Grid
+              grid={puzzle.grid}
+              placedWords={puzzle.words}
+              foundWords={foundWords}
+              foundPatterns={foundPatterns}
+              settings={settings}
+              category={category}
+              hintCell={hintCell}
+              pulseCells={pulseCells}
+              onWordFound={handleWordFound}
+              onWrongAttempt={handleWrong}
+            />
+          )}
         </div>
 
         <WordList
@@ -442,6 +481,7 @@ export function Game({
           hintWord={hintWord}
           favoriteWords={favoriteWords}
           onToggleFavorite={onToggleFavorite}
+          onWordTap={handleWordTap}
         />
       </div>
 
@@ -456,6 +496,14 @@ export function Game({
           newAchievement={newAchievement}
           isDaily={isDaily}
           isPack={isPack}
+          showInstallNudge={
+            showInstallNudge &&
+            totalPuzzlesCompleted <= 1 &&
+            !isBlitz
+          }
+          installMode={installMode}
+          onInstall={onInstall}
+          onDismissInstall={onDismissInstall}
           onShare={isDaily ? () => setShowShare(true) : undefined}
           onCopyChallenge={
             !isDaily && !isPack
@@ -497,6 +545,7 @@ export function Game({
           }}
           dailyNumber={getDailyNumber(dailyDate)}
           seed={seed}
+          streak={dailyStreak}
           onClose={() => setShowShare(false)}
         />
       )}
