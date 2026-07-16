@@ -47,6 +47,9 @@ interface GameProps {
   onDismissInstall?: () => void;
   onToggleLight: (light: boolean) => void;
   initialLayoutKey?: number;
+  /** After complete: next pack level, new free-play layout, or exit daily. */
+  onContinueNext: () => void;
+  hasNextPackLevel?: boolean;
 }
 
 const BLITZ_DURATION_MS = 60000;
@@ -86,6 +89,8 @@ export function Game({
   onDismissInstall,
   onToggleLight,
   initialLayoutKey = 0,
+  onContinueNext,
+  hasNextPackLevel = false,
 }: GameProps) {
   const isPack = packId != null && packLevel != null;
   const pack = isPack ? getPack(packId) : undefined;
@@ -215,7 +220,8 @@ export function Game({
 
   const finishGame = useCallback(
     (wordsFoundCount: number, timeUp = false) => {
-      const timeMs = isBlitz ? BLITZ_DURATION_MS : Date.now() - startTime.current;
+      const timeMs = isBlitz ? BLITZ_DURATION_MS : Math.max(0, Date.now() - startTime.current);
+      setElapsed(timeMs);
       setProgressSweep(true);
       setTimeout(() => {
         setCompleted(true);
@@ -263,14 +269,14 @@ export function Game({
     ],
   );
 
+  // Track elapsed for all non-blitz modes (used on completion screen & timed HUD)
   useEffect(() => {
     if (completed || isBlitz) return;
-    if (mode === 'relaxed' || isZen) return;
     const interval = setInterval(() => {
       setElapsed(Date.now() - startTime.current);
     }, 100);
     return () => clearInterval(interval);
-  }, [mode, completed, isBlitz, isZen]);
+  }, [completed, isBlitz]);
 
   useEffect(() => {
     if (!isBlitz || completed) return;
@@ -571,7 +577,16 @@ export function Game({
           }
           onPlayAgain={canShuffle ? handleNewLayout : undefined}
           playAgainLabel={isPack ? 'New layout' : 'Play again'}
-          onContinue={onBack}
+          onContinue={onContinueNext}
+          continueLabel={
+            isPack
+              ? hasNextPackLevel
+                ? 'Next level'
+                : 'Back to packs'
+              : isDaily
+                ? 'Done'
+                : 'Next puzzle'
+          }
         />
       )}
 

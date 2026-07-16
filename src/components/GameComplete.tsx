@@ -25,6 +25,7 @@ interface GameCompleteProps {
   onPlayAgain?: () => void;
   playAgainLabel?: string;
   onContinue: () => void;
+  continueLabel?: string;
 }
 
 export function GameComplete({
@@ -46,6 +47,7 @@ export function GameComplete({
   onPlayAgain,
   playAgainLabel = 'Play again',
   onContinue,
+  continueLabel = 'Continue',
 }: GameCompleteProps) {
   const headline = isBlitz ? 'Blitz complete!' : 'You found them all!';
 
@@ -133,7 +135,7 @@ export function GameComplete({
             </button>
           )}
           <button className="btn btn-primary btn-glow btn-complete-primary" onClick={onContinue}>
-            {isPack ? 'Back to packs' : 'Continue'}
+            {continueLabel}
           </button>
         </div>
       </div>

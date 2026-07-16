@@ -3,6 +3,7 @@ import type { CategoryId, PuzzleTab, Screen } from './types';
 import { todayString } from './lib/rng';
 import { useAppState } from './hooks/useAppState';
 import { getDailyCategory } from './lib/daily';
+import { getPack } from './lib/packs';
 import { parseChallengeFromHash, clearChallengeHash } from './lib/challenge';
 import { hasCompletedOnboarding } from './lib/onboarding';
 import { shouldShowDailyNudge } from './lib/dailyNudge';
@@ -160,6 +161,38 @@ export default function App() {
     }
   };
 
+  /** After completing a puzzle: next level / next free puzzle / leave daily. */
+  const handleGameContinue = () => {
+    if (unlockQueue[0]) dismissUnlock();
+
+    if (packSession) {
+      const pack = getPack(packSession.packId);
+      if (pack && packSession.level + 1 < pack.puzzleCount) {
+        startPackGame(packSession.packId, packSession.level + 1, pack.category);
+        return;
+      }
+      setActiveCategory(null);
+      setIsDaily(false);
+      setChallengeSeed(undefined);
+      setPackSession(null);
+      setPuzzleTab('packs');
+      navigateTo('puzzles');
+      return;
+    }
+
+    if (isDaily) {
+      handleBack();
+      return;
+    }
+
+    if (activeCategory) {
+      startGame(activeCategory, false, undefined, Date.now() % 1_000_000 + 1);
+      return;
+    }
+
+    handleBack();
+  };
+
   const handleDaily = () => {
     startGame(getDailyCategory(todayString()), true);
   };
@@ -261,6 +294,12 @@ export default function App() {
             onInstall={handleInstall}
             onDismissInstall={dismissCompleteNudge}
             onToggleLight={(v) => patchSettings({ lightBackground: v })}
+            onContinueNext={handleGameContinue}
+            hasNextPackLevel={
+              !!packSession &&
+              !!getPack(packSession.packId) &&
+              packSession.level + 1 < (getPack(packSession.packId)?.puzzleCount ?? 0)
+            }
           />
         )}
         {screen === 'settings' && (

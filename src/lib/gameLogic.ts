@@ -1,5 +1,8 @@
 import type { Cell, PlacedWord } from '../types';
 
+/** Extra cells allowed before/after a word when swiping (mobile forgiveness). */
+export const SELECTION_GRACE = 2;
+
 export function cellKey(cell: Cell): string {
   return `${cell.row},${cell.col}`;
 }
@@ -50,39 +53,75 @@ export function getWordFromCells(grid: string[][], cells: Cell[]): string {
   return cells.map((c) => grid[c.row][c.col]).join('');
 }
 
-/** Cells in the order the player swiped — forward or reversed to match placement. */
+/**
+ * True if `needle` appears as a contiguous run inside `haystack`.
+ * Allows `haystack` to be up to `grace` cells longer (overshoot at either end).
+ */
+export function pathContains(
+  haystack: Cell[],
+  needle: Cell[],
+  grace: number = SELECTION_GRACE,
+): boolean {
+  if (needle.length < 2) return false;
+  if (haystack.length < needle.length) return false;
+  if (haystack.length > needle.length + grace) return false;
+
+  for (let i = 0; i <= haystack.length - needle.length; i++) {
+    let match = true;
+    for (let j = 0; j < needle.length; j++) {
+      if (!cellsEqual(haystack[i + j], needle[j])) {
+        match = false;
+        break;
+      }
+    }
+    if (match) return true;
+  }
+  return false;
+}
+
+/**
+ * Whether the selection covers this placed word (forward or reverse),
+ * with a little room for overshooting start/end on mobile.
+ */
+export function selectionMatchesWord(
+  selected: Cell[],
+  placed: PlacedWord,
+  grace: number = SELECTION_GRACE,
+): boolean {
+  if (selected.length < 2) return false;
+  const forward = placed.cells;
+  const reverse = [...placed.cells].reverse();
+  return pathContains(selected, forward, grace) || pathContains(selected, reverse, grace);
+}
+
+/** Cells in the order the player swiped through the word (forward or reverse). */
 export function getRevealCells(match: PlacedWord, selected: Cell[]): Cell[] {
-  const selKeys = selected.map(cellKey).join('|');
-  const fwdKeys = match.cells.map(cellKey).join('|');
-  const revKeys = [...match.cells].reverse().map(cellKey).join('|');
-  if (selKeys === fwdKeys) return match.cells;
-  if (selKeys === revKeys) return [...match.cells].reverse();
-  return selected;
+  const forward = match.cells;
+  const reverse = [...match.cells].reverse();
+
+  if (pathContains(selected, forward, SELECTION_GRACE)) return forward;
+  if (pathContains(selected, reverse, SELECTION_GRACE)) return reverse;
+
+  // Fallback: first selected cell that belongs to the word decides direction
+  const firstHit = selected.find((c) =>
+    match.cells.some((m) => cellsEqual(m, c)),
+  );
+  if (firstHit && cellsEqual(firstHit, reverse[0])) return reverse;
+  return forward;
 }
 
 export function findMatchingWord(
-  grid: string[][],
+  _grid: string[][],
   cells: Cell[],
   placedWords: PlacedWord[],
   foundWords: Set<string>,
+  grace: number = SELECTION_GRACE,
 ): PlacedWord | null {
   if (cells.length < 2) return null;
 
-  const forward = getWordFromCells(grid, cells);
-  const reversed = [...cells].reverse();
-  const backward = getWordFromCells(grid, reversed);
-
   for (const placed of placedWords) {
     if (foundWords.has(placed.word)) continue;
-
-    const placedKeys = placed.cells.map(cellKey).join('|');
-    const selectedKeys = cells.map(cellKey).join('|');
-    const reversedKeys = reversed.map(cellKey).join('|');
-
-    if (
-      (placed.word === forward || placed.word === backward) &&
-      (selectedKeys === placedKeys || selectedKeys === reversedKeys)
-    ) {
+    if (selectionMatchesWord(cells, placed, grace)) {
       return placed;
     }
   }
@@ -91,7 +130,7 @@ export function findMatchingWord(
 }
 
 export function formatTime(ms: number): string {
-  const totalSec = Math.floor(ms / 1000);
+  const totalSec = Math.floor(Math.max(0, ms) / 1000);
   const min = Math.floor(totalSec / 60);
   const sec = totalSec % 60;
   return `${min}:${sec.toString().padStart(2, '0')}`;
