@@ -50,6 +50,16 @@ export function getWordFromCells(grid: string[][], cells: Cell[]): string {
   return cells.map((c) => grid[c.row][c.col]).join('');
 }
 
+/** Cells in the order the player swiped — forward or reversed to match placement. */
+export function getRevealCells(match: PlacedWord, selected: Cell[]): Cell[] {
+  const selKeys = selected.map(cellKey).join('|');
+  const fwdKeys = match.cells.map(cellKey).join('|');
+  const revKeys = [...match.cells].reverse().map(cellKey).join('|');
+  if (selKeys === fwdKeys) return match.cells;
+  if (selKeys === revKeys) return [...match.cells].reverse();
+  return selected;
+}
+
 export function findMatchingWord(
   grid: string[][],
   cells: Cell[],

@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 import type { CategoryId, Cell, PlacedWord, Settings } from '../types';
-import { cellKey, findMatchingWord, getLineCells } from '../lib/gameLogic';
+import { cellKey, findMatchingWord, getLineCells, getRevealCells } from '../lib/gameLogic';
 import { getCategoryFoundColor } from '../lib/categoryThemes';
 import {
   playErrorSound,
@@ -22,6 +22,12 @@ interface GridProps {
   onWordFound: (word: PlacedWord) => void;
   onWrongAttempt: () => void;
   onRevealComplete?: (word: PlacedWord) => void;
+}
+
+interface RevealAnim {
+  cells: Cell[];
+  step: number;
+  color: string;
 }
 
 function soundFromSettings(settings: Settings): SoundSettings {
@@ -52,7 +58,7 @@ export function Grid({
   const [selecting, setSelecting] = useState(false);
   const [startCell, setStartCell] = useState<Cell | null>(null);
   const [currentCells, setCurrentCells] = useState<Cell[]>([]);
-  const [revealingCells, setRevealingCells] = useState<Set<string>>(new Set());
+  const [revealAnim, setRevealAnim] = useState<RevealAnim | null>(null);
   const [shaking, setShaking] = useState(false);
   const [wrongFlash, setWrongFlash] = useState<Cell[]>([]);
   const [popWord, setPopWord] = useState<string | null>(null);
@@ -75,37 +81,44 @@ export function Grid({
   );
 
   const runRevealAnimation = useCallback(
-    (word: PlacedWord, onDone: () => void) => {
+    (word: PlacedWord, selectedCells: Cell[], onDone: () => void) => {
       if (settings.reduceMotion) {
         onDone();
         return;
       }
-      const keys = word.cells.map(cellKey);
-      setRevealingCells(new Set([keys[0]]));
-      playRevealTick(sound, 0);
+
+      const cells = getRevealCells(word, selectedCells);
+      const color = getCategoryFoundColor(category, foundWords.size);
+      const tickMs = 48;
+
+      const tick = (step: number) => {
+        setRevealAnim({ cells, step, color });
+        playRevealTick(sound, step);
+      };
+
+      tick(0);
       setPopWord(word.word);
-      setTimeout(() => setPopWord(null), 420);
+      setTimeout(() => setPopWord(null), 400);
 
       let step = 1;
       const interval = setInterval(() => {
-        if (step < keys.length) {
-          setRevealingCells((prev) => new Set([...prev, keys[step]]));
-          playRevealTick(sound, step);
+        if (step < cells.length) {
+          tick(step);
           step++;
         } else {
           clearInterval(interval);
           setTimeout(() => {
-            setRevealingCells(new Set());
+            setRevealAnim(null);
             onDone();
-          }, 120);
+          }, 80);
         }
-      }, 55);
+      }, tickMs);
     },
-    [settings.reduceMotion, sound],
+    [settings.reduceMotion, sound, category, foundWords.size],
   );
 
   const handlePointerDown = (e: React.PointerEvent) => {
-    if (e.button !== 0) return;
+    if (e.button !== 0 || revealAnim) return;
     const cell = getCellFromPoint(e.clientX, e.clientY);
     if (!cell) return;
     e.preventDefault();
@@ -130,22 +143,23 @@ export function Grid({
     pointerIdRef.current = null;
     setSelecting(false);
 
+    const matchedCells = [...currentCells];
     const foundSet = new Set(foundWords.keys());
-    const match = findMatchingWord(grid, currentCells, placedWords, foundSet);
+    const match = findMatchingWord(grid, matchedCells, placedWords, foundSet);
 
     if (match) {
       triggerHapticByLength(settings.haptics, match.word.length);
-      runRevealAnimation(match, () => {
+      runRevealAnimation(match, matchedCells, () => {
         playFoundSound(sound, foundWords.size, match.word.length);
         triggerHaptic(settings.haptics, 'success');
         onWordFound(match);
         onRevealComplete?.(match);
       });
-    } else if (currentCells.length >= 2) {
+    } else if (matchedCells.length >= 2) {
       playErrorSound(sound);
       triggerHaptic(settings.haptics, 'medium');
       setShaking(true);
-      setWrongFlash([...currentCells]);
+      setWrongFlash([...matchedCells]);
       setTimeout(() => setShaking(false), 450);
       setTimeout(() => setWrongFlash([]), 500);
       onWrongAttempt();
@@ -157,6 +171,14 @@ export function Grid({
 
   const selectedSet = new Set(currentCells.map(cellKey));
   const hintKey = hintCell ? cellKey(hintCell) : null;
+
+  const revealedKeys = new Set<string>();
+  if (revealAnim) {
+    for (let i = 0; i <= revealAnim.step; i++) {
+      revealedKeys.add(cellKey(revealAnim.cells[i]));
+    }
+  }
+
   const foundCellMeta = new Map<string, { color: string; pattern: number }>();
   for (const [word, color] of foundWords) {
     const placed = placedWords.find((p) => p.word === word);
@@ -174,14 +196,7 @@ export function Grid({
     const start = cellCenterPercent(placed.cells[0], gridSize);
     if (placed.cells.length === 1) {
       return (
-        <circle
-          key={word}
-          cx={start.x}
-          cy={start.y}
-          r="3"
-          fill={color}
-          opacity="0.9"
-        />
+        <circle key={word} cx={start.x} cy={start.y} r="3" fill={color} opacity="0.9" />
       );
     }
     const end = cellCenterPercent(placed.cells[placed.cells.length - 1], gridSize);
@@ -201,8 +216,28 @@ export function Grid({
     );
   });
 
+  const revealLine =
+    revealAnim && revealAnim.cells.length >= 2 ? (
+      <line
+        key="__reveal-trail"
+        className="reveal-line-trail"
+        x1={cellCenterPercent(revealAnim.cells[0], gridSize).x}
+        y1={cellCenterPercent(revealAnim.cells[0], gridSize).y}
+        x2={cellCenterPercent(revealAnim.cells[revealAnim.step], gridSize).x}
+        y2={cellCenterPercent(revealAnim.cells[revealAnim.step], gridSize).y}
+        stroke={revealAnim.color}
+        strokeWidth="6"
+        strokeLinecap="round"
+        opacity="0.75"
+      />
+    ) : null;
+
   const trailCells =
-    selecting && currentCells.length >= 2 ? currentCells : wrongFlash;
+    selecting && currentCells.length >= 2
+      ? currentCells
+      : wrongFlash.length >= 2
+        ? wrongFlash
+        : [];
   const isWrongTrail = wrongFlash.length >= 2;
 
   const trailPoints =
@@ -221,6 +256,7 @@ export function Grid({
         <div className="grid-board-wrap">
           <svg className="found-words-overlay" viewBox="0 0 100 100" preserveAspectRatio="none">
             {foundWordLines}
+            {revealLine}
           </svg>
 
           {trailCells.length >= 2 && (
@@ -251,59 +287,66 @@ export function Grid({
           <div
             ref={gridRef}
             className="grid-board"
-          style={{
-            gridTemplateColumns: `repeat(${gridSize}, 1fr)`,
-            '--font-scale': settings.fontScale,
-            touchAction: 'none',
-            userSelect: 'none',
-          } as React.CSSProperties}
-          onPointerDown={handlePointerDown}
-          onPointerMove={handlePointerMove}
-          onPointerUp={handlePointerUp}
-          onPointerCancel={handlePointerUp}
-        >
-          {grid.map((row, r) =>
-            row.map((letter, c) => {
-              const key = cellKey({ row: r, col: c });
-              const isSelected = selectedSet.has(key);
-              const meta = foundCellMeta.get(key);
-              const isFound = !!meta;
-              const isRevealing = revealingCells.has(key);
-              const isHint = hintKey === key;
-              const staggerDelay = (r * gridSize + c) * 12;
+            style={{
+              gridTemplateColumns: `repeat(${gridSize}, 1fr)`,
+              '--font-scale': settings.fontScale,
+              touchAction: 'none',
+              userSelect: 'none',
+            } as React.CSSProperties}
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            onPointerCancel={handlePointerUp}
+          >
+            {grid.map((row, r) =>
+              row.map((letter, c) => {
+                const key = cellKey({ row: r, col: c });
+                const isSelected = selectedSet.has(key);
+                const meta = foundCellMeta.get(key);
+                const isFound = !!meta;
+                const isRevealing = revealedKeys.has(key);
+                const isHint = hintKey === key;
+                const revealColor = revealAnim?.color;
+                const staggerDelay = (r * gridSize + c) * 12;
 
-              return (
-                <div
-                  key={key}
-                  className={[
-                    'grid-cell',
-                    isSelected && 'selecting',
-                    isFound && 'found',
-                    isRevealing && 'revealing',
-                    isHint && 'hint-pulse',
-                    isFound && settings.colorblindMode && `cb-pattern-${meta.pattern % 6}`,
-                  ]
-                    .filter(Boolean)
-                    .join(' ')}
-                  style={{
-                    animationDelay: `${staggerDelay}ms`,
-                    ...(isFound
-                      ? {
-                          '--found-bg': meta.color,
-                          background: meta.color,
-                          color: '#1a1a24',
-                        }
-                      : {}),
-                  } as React.CSSProperties}
-                >
-                  <span className="grid-letter">{letter}</span>
-                  {isFound && settings.colorblindMode && (
-                    <span className="cb-overlay" aria-hidden="true" />
-                  )}
-                </div>
-              );
-            }),
-          )}
+                return (
+                  <div
+                    key={key}
+                    className={[
+                      'grid-cell',
+                      isSelected && 'selecting',
+                      isFound && 'found',
+                      isRevealing && 'revealing',
+                      isHint && 'hint-pulse',
+                      isFound && settings.colorblindMode && `cb-pattern-${meta.pattern % 6}`,
+                    ]
+                      .filter(Boolean)
+                      .join(' ')}
+                    style={{
+                      animationDelay: `${staggerDelay}ms`,
+                      ...(isFound
+                        ? {
+                            '--found-bg': meta.color,
+                            background: meta.color,
+                            color: '#1a1a24',
+                          }
+                        : isRevealing && revealColor
+                          ? {
+                              '--found-bg': revealColor,
+                              background: revealColor,
+                              color: '#1a1a24',
+                            }
+                          : {}),
+                    } as React.CSSProperties}
+                  >
+                    <span className="grid-letter">{letter}</span>
+                    {isFound && settings.colorblindMode && (
+                      <span className="cb-overlay" aria-hidden="true" />
+                    )}
+                  </div>
+                );
+              }),
+            )}
           </div>
         </div>
       </div>

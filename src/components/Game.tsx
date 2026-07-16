@@ -412,7 +412,7 @@ export function Game({
         </div>
       )}
 
-      <ToastDock toasts={toasts} />
+      <ToastDock toasts={toasts} variant="inline" />
 
       <div className="game-play-area">
         <div className="game-board-wrap">
