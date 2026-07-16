@@ -11,7 +11,6 @@ import { getPostDailyGoal } from '../lib/homeGoals';
 import { APP_NAME, APP_TAGLINE } from '../lib/brand';
 import { getCategory } from '../lib/wordLists';
 import { HomeBackground } from './HomeBackground';
-import { HomeMiniPuzzle } from './HomeMiniPuzzle';
 import { AnnouncementRail } from './AnnouncementRail';
 import type { InstallMode } from '../lib/install';
 import {
@@ -104,17 +103,15 @@ export function Home({
         />
 
         <div className="home-hero-card panel-card">
-          <header className="hero hero-fun">
+          <header className="hero hero-fun hero-compact">
             <div className="hero-logo">
-              <LogoMark size={60} />
+              <LogoMark size={48} />
               <div className="hero-logo-ring" />
             </div>
             <p className="hero-eyebrow">Swipe · Find · Win</p>
             <h1 className="hero-title display-font">{APP_NAME}</h1>
             <p className="hero-subtitle">{APP_TAGLINE}</p>
           </header>
-
-          <HomeMiniPuzzle />
 
           <div className="home-hero-cta">
             <button

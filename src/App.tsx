@@ -22,6 +22,7 @@ import { Navigation } from './components/Navigation';
 import { AmbientBackground } from './components/AmbientBackground';
 import { VersionFooter } from './components/VersionFooter';
 import { AchievementUnlock } from './components/AchievementUnlock';
+import { UpdateBanner } from './components/UpdateBanner';
 
 type NavDirection = 'forward' | 'back' | 'tab';
 
@@ -298,6 +299,7 @@ export default function App() {
       data-screen={screen}
     >
       <AmbientBackground />
+      <UpdateBanner />
       <main
         key={screen}
         className={`app-main screen-enter screen-${navDirection}`}

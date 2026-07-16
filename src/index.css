@@ -4182,6 +4182,60 @@ a:focus:not(:focus-visible) {
   outline: none;
 }
 
+/* Compact home (no mini-puzzle) */
+.hero-compact {
+  padding: 8px 0 12px !important;
+}
+
+.hero-compact .hero-title {
+  font-size: clamp(2rem, 8vw, 2.6rem) !important;
+  margin: 4px 0 !important;
+}
+
+.hero-compact .hero-subtitle {
+  font-size: 0.85rem;
+  margin-bottom: 0;
+}
+
+.hero-compact .hero-logo {
+  margin-bottom: 4px;
+}
+
+.home-hero-card {
+  padding-bottom: 12px !important;
+}
+
+.update-banner {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 10px 14px;
+  background: linear-gradient(90deg, #4f46e5, #0891b2);
+  color: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.update-banner-text {
+  flex: 1;
+  min-width: 140px;
+}
+
+.update-banner-dismiss {
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.9);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 4px 8px;
+}
+
 /* Sprint A–C polish */
 .home-mode-row {
   display: flex;
