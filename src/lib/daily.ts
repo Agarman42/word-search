@@ -70,15 +70,26 @@ const COMMENTARY: Record<CategoryId, string[]> = {
   ],
 };
 
-export function getDailyCategory(dateStr: string): CategoryId {
-  const d = new Date(dateStr + 'T12:00:00');
-  return DAILY_CATEGORIES[d.getDay() % DAILY_CATEGORIES.length];
-}
-
 export function getDailyNumber(dateStr: string): number {
   const epoch = new Date('2026-01-01T12:00:00').getTime();
   const d = new Date(dateStr + 'T12:00:00').getTime();
   return Math.floor((d - epoch) / 86400000) + 1;
+}
+
+/** Rotates through all categories by day-of-era (not weekday), so all 12 themes appear. */
+export function getDailyCategory(dateStr: string): CategoryId {
+  const n = getDailyNumber(dateStr);
+  const idx = ((n % DAILY_CATEGORIES.length) + DAILY_CATEGORIES.length) % DAILY_CATEGORIES.length;
+  return DAILY_CATEGORIES[idx];
+}
+
+export function getTomorrowDateString(dateStr: string): string {
+  const d = new Date(dateStr + 'T12:00:00');
+  d.setDate(d.getDate() + 1);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
 }
 
 export function getDailyCommentary(dateStr: string, category: CategoryId): string {
