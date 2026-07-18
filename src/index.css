@@ -3156,39 +3156,46 @@ html.theme-dark .recent-game-row {
 }
 
 /*
- * Balanced home: fill height between status bar and tab bar,
- * so content isn't packed mid-screen with a dead zone above the dock.
+ * Balanced home: fill most of the main column without sitting heavy on the dock.
+ * min-height matches app-main bottom clearance minus a small lift (~14px) so
+ * the block sits a hair higher. Mid grows with free space below the quick
+ * links (not space-evenly, which pushed modes/quick too low).
  */
 .home-content-balanced {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  justify-content: flex-start;
+  gap: 0;
   min-height: calc(
-    100dvh - var(--safe-top) - var(--nav-height) - var(--dock-offset) -
-    var(--version-height) - var(--safe-bottom) - 18px
+    100dvh - var(--nav-height) - var(--dock-offset) -
+    var(--version-height) - var(--safe-bottom) - 24px
   );
   box-sizing: border-box;
+  padding-top: calc(var(--safe-top) + 8px);
+  padding-bottom: 4px;
 }
 
 .home-stack-top {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  flex-shrink: 0;
+  gap: 11px;
+  flex: 0 0 auto;
 }
 
 .home-stack-mid {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 14px;
   flex: 1 1 auto;
-  min-height: 12px;
+  min-height: 0;
+  padding: 12px 0 0;
 }
 
 .home-stack-bottom {
-  flex-shrink: 0;
-  padding-top: 4px;
+  flex: 0 0 auto;
+  margin-top: auto;
+  padding-top: 10px;
   padding-bottom: 2px;
 }
 
@@ -3202,22 +3209,22 @@ html.theme-dark .recent-game-row {
 
 .home-content-balanced .announcement-card,
 .home-content-balanced .install-prompt {
-  padding: 10px 12px;
+  padding: 11px 12px;
   margin-bottom: 0;
 }
 
 .home-content-balanced .home-hero-card {
   margin-bottom: 0;
-  padding: 14px 14px 12px !important;
+  padding: 14px 14px 14px !important;
 }
 
 .home-content-balanced .hero-compact {
-  padding: 6px 0 8px !important;
+  padding: 4px 0 6px !important;
 }
 
 .home-content-balanced .hero-compact .hero-title {
-  font-size: clamp(1.9rem, 7.5vw, 2.35rem) !important;
-  margin: 4px 0 !important;
+  font-size: clamp(1.85rem, 7.2vw, 2.25rem) !important;
+  margin: 2px 0 !important;
 }
 
 .home-content-balanced .hero-compact .hero-subtitle {
@@ -3227,34 +3234,35 @@ html.theme-dark .recent-game-row {
 }
 
 .home-content-balanced .hero-compact .hero-logo {
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
+/* Air out the Daily / Continue / Streak cluster — was the crunch zone */
 .home-content-balanced .home-hero-cta {
-  margin-top: 10px;
-  gap: 10px;
+  margin-top: 12px;
+  gap: 12px;
 }
 
 .home-content-balanced .home-hero-cta .btn-large {
-  min-height: 52px;
+  min-height: 54px;
   padding: 12px 14px;
 }
 
 .home-content-balanced .home-streak-card {
-  margin-top: 12px;
-  padding: 12px 14px;
+  margin-top: 14px;
+  padding: 13px 14px;
   gap: 12px;
   border-radius: 16px;
 }
 
 .home-content-balanced .home-streak-badge {
-  width: 58px;
-  height: 58px;
+  width: 56px;
+  height: 56px;
   border-radius: 14px;
 }
 
 .home-content-balanced .home-streak-count {
-  font-size: 1.4rem;
+  font-size: 1.35rem;
 }
 
 .home-content-balanced .home-streak-title {
@@ -3272,8 +3280,8 @@ html.theme-dark .recent-game-row {
 }
 
 .home-content-balanced .home-mode-chip {
-  padding: 8px 12px;
-  font-size: 0.72rem;
+  padding: 9px 12px;
+  font-size: 0.74rem;
 }
 
 .home-content-balanced .home-quick-fun {
@@ -3282,8 +3290,8 @@ html.theme-dark .recent-game-row {
 }
 
 .home-content-balanced .quick-link-fun {
-  padding: 12px 6px;
-  gap: 6px;
+  padding: 14px 6px;
+  gap: 7px;
 }
 
 .home-content-balanced .home-stats-strip {
@@ -3300,11 +3308,11 @@ html.theme-dark .recent-game-row {
 /* Short phones: keep balance but trim a little */
 @media (max-height: 720px) {
   .home-content-balanced {
-    gap: 10px;
     min-height: calc(
-      100dvh - var(--safe-top) - var(--nav-height) - var(--dock-offset) -
-      var(--version-height) - var(--safe-bottom) - 12px
+      100dvh - var(--nav-height) - var(--dock-offset) -
+      var(--version-height) - var(--safe-bottom) - 18px
     );
+    padding-top: calc(var(--safe-top) + 6px);
   }
 
   .home-stack-top {
@@ -3313,6 +3321,11 @@ html.theme-dark .recent-game-row {
 
   .home-stack-mid {
     gap: 10px;
+    padding: 8px 0 0;
+  }
+
+  .home-stack-bottom {
+    padding-top: 8px;
   }
 
   .home-content-balanced .hero-compact .hero-subtitle {
@@ -3323,8 +3336,13 @@ html.theme-dark .recent-game-row {
     padding: 10px 12px !important;
   }
 
-  .home-content-balanced .home-streak-card {
+  .home-content-balanced .home-hero-cta {
     margin-top: 8px;
+    gap: 8px;
+  }
+
+  .home-content-balanced .home-streak-card {
+    margin-top: 10px;
     padding: 10px 12px;
   }
 
@@ -3340,20 +3358,30 @@ html.theme-dark .recent-game-row {
 
 /* Tall phones / tablets — more air between sections */
 @media (min-height: 820px) {
-  .home-content-balanced {
-    gap: 18px;
-  }
-
   .home-stack-top {
-    gap: 14px;
+    gap: 13px;
   }
 
   .home-stack-mid {
     gap: 16px;
+    padding: 14px 0 0;
   }
 
   .home-content-balanced .home-hero-card {
-    padding: 16px 16px 14px !important;
+    padding: 16px 16px 16px !important;
+  }
+
+  .home-content-balanced .home-hero-cta {
+    margin-top: 14px;
+    gap: 14px;
+  }
+
+  .home-content-balanced .home-streak-card {
+    margin-top: 16px;
+  }
+
+  .home-content-balanced .quick-link-fun {
+    padding: 16px 8px;
   }
 }
 
