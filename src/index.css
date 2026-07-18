@@ -4272,6 +4272,7 @@ html.theme-dark .home-streak-pill {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  justify-content: center;
   margin-bottom: var(--space-2);
 }
 
