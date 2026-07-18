@@ -2,25 +2,34 @@ import type { CategoryId, Cell, PlacedWord, Puzzle, PuzzleOptions } from '../typ
 import { createRng } from './rng';
 import { getWordsForCategory } from './wordLists';
 
-const FORWARD_DIRS: { dr: number; dc: number; name: string }[] = [
-  { dr: 0, dc: 1, name: 'right' },
-  { dr: 1, dc: 0, name: 'down' },
-  { dr: 1, dc: 1, name: 'down-right' },
-  { dr: 1, dc: -1, name: 'down-left' },
+type DirKind = 'H' | 'V' | 'D';
+
+interface Dir {
+  dr: number;
+  dc: number;
+  name: string;
+  kind: DirKind;
+}
+
+const FORWARD_DIRS: Dir[] = [
+  { dr: 0, dc: 1, name: 'right', kind: 'H' },
+  { dr: 1, dc: 0, name: 'down', kind: 'V' },
+  { dr: 1, dc: 1, name: 'down-right', kind: 'D' },
+  { dr: 1, dc: -1, name: 'down-left', kind: 'D' },
 ];
 
-const BACKWARD_DIRS: { dr: number; dc: number; name: string }[] = [
-  { dr: 0, dc: -1, name: 'left' },
-  { dr: -1, dc: 0, name: 'up' },
-  { dr: -1, dc: -1, name: 'up-left' },
-  { dr: -1, dc: 1, name: 'up-right' },
+const BACKWARD_DIRS: Dir[] = [
+  { dr: 0, dc: -1, name: 'left', kind: 'H' },
+  { dr: -1, dc: 0, name: 'up', kind: 'V' },
+  { dr: -1, dc: -1, name: 'up-left', kind: 'D' },
+  { dr: -1, dc: 1, name: 'up-right', kind: 'D' },
 ];
 
 const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-const MAX_ATTEMPTS = 120;
+const MAX_ATTEMPTS = 140;
 const MAX_DEPTH = 8;
 
-function getDirections(allowBackwards: boolean) {
+function getDirections(allowBackwards: boolean): Dir[] {
   return allowBackwards ? [...FORWARD_DIRS, ...BACKWARD_DIRS] : FORWARD_DIRS;
 }
 
@@ -77,6 +86,83 @@ function clampOptions(gridSize: number, options: PuzzleOptions): PuzzleOptions {
   };
 }
 
+/** Proper Fisher–Yates shuffle using seeded rng. */
+function shuffle<T>(arr: T[], rng: () => number): T[] {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function kindFromCells(cells: Cell[]): DirKind {
+  if (cells.length < 2) return 'H';
+  const a = cells[0];
+  const b = cells[1];
+  const dr = Math.sign(b.row - a.row);
+  const dc = Math.sign(b.col - a.col);
+  if (dr === 0) return 'H';
+  if (dc === 0) return 'V';
+  return 'D';
+}
+
+function countKinds(placed: PlacedWord[]): Record<DirKind, number> {
+  const counts: Record<DirKind, number> = { H: 0, V: 0, D: 0 };
+  for (const p of placed) {
+    counts[kindFromCells(p.cells)]++;
+  }
+  return counts;
+}
+
+/**
+ * Higher is better. Rewards full word count first, then even H/V/D mix.
+ * Ideal is roughly equal share of horizontal, vertical, and diagonal words.
+ */
+export function directionBalanceScore(placed: PlacedWord[]): number {
+  if (placed.length === 0) return 0;
+  const counts = countKinds(placed);
+  const total = placed.length;
+  const ideal = total / 3;
+  // Variance from ideal thirds
+  const variance =
+    (counts.H - ideal) ** 2 + (counts.V - ideal) ** 2 + (counts.D - ideal) ** 2;
+  // Penalize boards missing a direction entirely
+  const missing =
+    (counts.H === 0 ? 40 : 0) + (counts.V === 0 ? 40 : 0) + (counts.D === 0 ? 40 : 0);
+  // Prefer more placed words, then low variance
+  return total * 1000 - variance * 25 - missing;
+}
+
+interface PlacePos {
+  r: number;
+  c: number;
+  dr: number;
+  dc: number;
+  name: string;
+  kind: DirKind;
+}
+
+/**
+ * Score a candidate placement: prefer underrepresented direction kinds,
+ * with a little random jitter so boards stay varied.
+ */
+function placementScore(
+  pos: PlacePos,
+  counts: Record<DirKind, number>,
+  placedCount: number,
+  rng: () => number,
+): number {
+  // Expected share if perfectly balanced going forward
+  const expected = (placedCount + 1) / 3;
+  // How far under the ideal this kind is (positive = underrepresented)
+  const under = expected - counts[pos.kind];
+  // Strong preference for underrepresented kinds; diagonals get a small boost
+  // because they have fewer natural slots on the grid
+  const diagonalBoost = pos.kind === 'D' ? 0.35 : 0;
+  return under * 10 + diagonalBoost + rng() * 0.5;
+}
+
 function tryPlace(
   category: CategoryId,
   gridSize: number,
@@ -100,7 +186,9 @@ function tryPlace(
   const sortedWords = [...words].sort((a, b) => b.length - a.length);
   const directions = getDirections(clamped.allowBackwards);
 
-  let best: { grid: (string | null)[][]; placed: PlacedWord[] } | null = null;
+  let best: { grid: (string | null)[][]; placed: PlacedWord[]; score: number } | null = null;
+  let bestComplete: { grid: (string | null)[][]; placed: PlacedWord[]; score: number } | null =
+    null;
 
   for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
     const attemptRng = createRng(`${seed}-attempt-${attempt}`);
@@ -109,24 +197,52 @@ function tryPlace(
     );
     const placed: PlacedWord[] = [];
 
-    for (const word of sortedWords) {
-      const dirs = [...directions].sort(() => attemptRng() - 0.5);
-      let placedWord = false;
+    // Round-robin preferred kinds so early long words aren't all H or all V
+    const kindCycle = shuffle(
+      sortedWords.map((_, i) => (['H', 'V', 'D'] as DirKind[])[i % 3]),
+      attemptRng,
+    );
 
-      const positions: { r: number; c: number; dr: number; dc: number; name: string }[] = [];
-      for (const { dr, dc, name } of dirs) {
+    for (let wi = 0; wi < sortedWords.length; wi++) {
+      const word = sortedWords[wi];
+      const preferredKind = kindCycle[wi];
+      const counts = countKinds(placed);
+
+      // Collect all valid positions
+      const positions: PlacePos[] = [];
+      for (const dir of directions) {
         for (let r = 0; r < gridSize; r++) {
           for (let c = 0; c < gridSize; c++) {
-            if (canPlace(grid, word, r, c, dr, dc)) {
-              positions.push({ r, c, dr, dc, name });
+            if (canPlace(grid, word, r, c, dir.dr, dir.dc)) {
+              positions.push({
+                r,
+                c,
+                dr: dir.dr,
+                dc: dir.dc,
+                name: dir.name,
+                kind: dir.kind,
+              });
             }
           }
         }
       }
 
-      positions.sort(() => attemptRng() - 0.5);
+      if (positions.length === 0) break;
 
-      for (const pos of positions) {
+      // Prefer preferred kind, then underrepresented kinds via score
+      positions.sort((a, b) => {
+        const prefA = a.kind === preferredKind ? 50 : 0;
+        const prefB = b.kind === preferredKind ? 50 : 0;
+        const scoreA = placementScore(a, counts, placed.length, attemptRng) + prefA;
+        const scoreB = placementScore(b, counts, placed.length, attemptRng) + prefB;
+        return scoreB - scoreA;
+      });
+
+      // Try top candidates (not only first — first may still fail rare race)
+      let placedWord = false;
+      const tryN = Math.min(positions.length, 24);
+      for (let i = 0; i < tryN; i++) {
+        const pos = positions[i];
         if (canPlace(grid, word, pos.r, pos.c, pos.dr, pos.dc)) {
           const cells = placeWord(grid, word, pos.r, pos.c, pos.dr, pos.dc);
           placed.push({ word, cells, direction: pos.name });
@@ -135,38 +251,56 @@ function tryPlace(
         }
       }
 
+      // Fallback: any remaining position
+      if (!placedWord) {
+        for (const pos of positions) {
+          if (canPlace(grid, word, pos.r, pos.c, pos.dr, pos.dc)) {
+            const cells = placeWord(grid, word, pos.r, pos.c, pos.dr, pos.dc);
+            placed.push({ word, cells, direction: pos.name });
+            placedWord = true;
+            break;
+          }
+        }
+      }
+
       if (!placedWord) break;
     }
 
-    if (!best || placed.length > best.placed.length) {
-      best = { grid, placed };
+    const score = directionBalanceScore(placed);
+
+    if (!best || placed.length > best.placed.length || (placed.length === best.placed.length && score > best.score)) {
+      best = { grid, placed, score };
     }
 
     if (placed.length === sortedWords.length) {
-      const fillRng = createRng(`${seed}-fill-${attempt}`);
-      return {
-        grid: fillEmpty(grid, fillRng),
-        words: placed,
-        category,
-        seed,
-        gridSize,
-      };
+      if (!bestComplete || score > bestComplete.score) {
+        bestComplete = { grid, placed, score };
+      }
+      // Early exit if mix is excellent (all three kinds present and reasonably even)
+      const c = countKinds(placed);
+      const minShare = Math.min(c.H, c.V, c.D) / placed.length;
+      if (c.H > 0 && c.V > 0 && c.D > 0 && minShare >= 0.18) {
+        break;
+      }
     }
   }
 
-  // Accept partial placement if we got most words
-  if (best && best.placed.length >= Math.max(4, Math.floor(sortedWords.length * 0.7))) {
-    const fillRng = createRng(`${seed}-fill-partial`);
-    return {
-      grid: fillEmpty(best.grid, fillRng),
-      words: best.placed,
-      category,
-      seed,
-      gridSize,
-    };
-  }
+  const pick = bestComplete ?? (
+    best && best.placed.length >= Math.max(4, Math.floor(sortedWords.length * 0.7))
+      ? best
+      : null
+  );
 
-  return null;
+  if (!pick) return null;
+
+  const fillRng = createRng(`${seed}-fill-balanced`);
+  return {
+    grid: fillEmpty(pick.grid, fillRng),
+    words: pick.placed,
+    category,
+    seed,
+    gridSize,
+  };
 }
 
 export function generatePuzzle(
@@ -183,7 +317,6 @@ export function generatePuzzle(
   if (result) return result;
 
   if (depth >= MAX_DEPTH) {
-    // Last resort: fewer, shorter words
     const fallback = tryPlace(
       category,
       gridSize,
@@ -198,7 +331,6 @@ export function generatePuzzle(
     );
     if (fallback) return fallback;
 
-    // Empty-safe minimal puzzle
     const rng = createRng(`${seed}-empty`);
     const grid = fillEmpty(
       Array.from({ length: gridSize }, () => Array(gridSize).fill(null)),
