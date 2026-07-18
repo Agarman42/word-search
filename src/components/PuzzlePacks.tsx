@@ -36,7 +36,7 @@ function PackProgressArc({ pct, color }: { pct: number; color: string }) {
 
 export function PuzzlePacks({ stats, onSelectPack, embedded }: PuzzlePacksProps) {
   const content = (
-    <div className="packs-carousel">
+    <div className="packs-list-vertical">
       {PUZZLE_PACKS.map((pack) => {
         const progress = stats.packProgress[pack.id] ?? 0;
         const pct = Math.round((progress / pack.puzzleCount) * 100);
@@ -46,14 +46,14 @@ export function PuzzlePacks({ stats, onSelectPack, embedded }: PuzzlePacksProps)
         return (
           <button
             key={pack.id}
-            className={`pack-cover-card panel-card ${complete ? 'complete' : ''}`}
+            className={`pack-cover-card pack-cover-vertical panel-card ${complete ? 'complete' : ''}`}
             style={{
               '--pack-color': pack.color,
               '--pack-cover': pack.coverGradient,
             } as React.CSSProperties}
             onClick={() => onSelectPack(pack.id, nextLevel, pack.category)}
           >
-            <div className="pack-cover-art">
+            <div className="pack-cover-art pack-cover-art-side">
               <span className="pack-cover-emoji">{pack.icon}</span>
               <span className="pack-cover-pattern" aria-hidden="true" />
             </div>

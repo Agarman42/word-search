@@ -3,6 +3,7 @@ import type { CategoryId, Stats } from '../types';
 const DAILY_CATEGORIES: CategoryId[] = [
   'animals', 'food', 'sports', 'movies', 'geography', 'kids', 'holiday',
   'science', 'music', 'nature', 'space', 'books',
+  'mythology', 'history', 'travel', 'technology',
 ];
 
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -67,6 +68,26 @@ const COMMENTARY: Record<CategoryId, string[]> = {
     'Turn the page — every line tells a story.',
     'Plot twists hide in plain sight today.',
     'A literary hunt across the board.',
+  ],
+  mythology: [
+    'Gods and legends hide among the letters.',
+    'Ancient tales await a modern seeker.',
+    'Myths never die — find them in the grid.',
+  ],
+  history: [
+    'The past is written — can you still find it?',
+    'Empires rise and fall across the board.',
+    'History rewards the careful eye.',
+  ],
+  travel: [
+    'Pack light — destinations hide in every line.',
+    'Wander the grid without a passport.',
+    'Adventure starts with a single swipe.',
+  ],
+  technology: [
+    'Bits and bytes woven into the maze.',
+    'Debug the grid — words are the code.',
+    'Future-facing finds for digital explorers.',
   ],
 };
 

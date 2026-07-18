@@ -232,6 +232,31 @@ export function CategoryIcon({ id, size = 24, className }: { id: CategoryId; siz
           <path d="M5 5h7v14H6a1 1 0 01-1-1V5zM12 5h7v14h-6a1 1 0 01-1-1V5z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
         </svg>
       );
+    case 'mythology':
+      return (
+        <svg {...props}>
+          <path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
+        </svg>
+      );
+    case 'history':
+      return (
+        <svg {...props}>
+          <path d="M4 20h16M6 20V10l6-4 6 4v10M10 20v-6h4v6" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
+        </svg>
+      );
+    case 'travel':
+      return (
+        <svg {...props}>
+          <path d="M10 21l2-8 8-2-8-2-2-8-2 8-8 2 8 2 2 8z" stroke="currentColor" strokeWidth="1.75" strokeLinejoin="round" />
+        </svg>
+      );
+    case 'technology':
+      return (
+        <svg {...props}>
+          <rect x="3" y="5" width="18" height="12" rx="2" stroke="currentColor" strokeWidth="1.75" />
+          <path d="M8 21h8M12 17v4" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" />
+        </svg>
+      );
     default:
       return <IconPuzzle size={size} className={className} />;
   }

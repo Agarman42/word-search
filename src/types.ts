@@ -10,7 +10,11 @@ export type CategoryId =
   | 'music'
   | 'nature'
   | 'space'
-  | 'books';
+  | 'books'
+  | 'mythology'
+  | 'history'
+  | 'travel'
+  | 'technology';
 
 export type GameMode = 'relaxed' | 'timed' | 'daily' | 'blitz' | 'zen' | 'coop';
 

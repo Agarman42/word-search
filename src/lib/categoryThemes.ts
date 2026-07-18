@@ -80,6 +80,30 @@ export const CATEGORY_THEMES: Record<CategoryId, CategoryTheme> = {
     bar: '#b45309',
     foundColors: ['#fed7aa', '#fde68a', '#fecaca', '#fbcfe8', '#fdba74', '#ffedd5'],
   },
+  mythology: {
+    tint: 'rgba(139, 92, 246, 0.06)',
+    accent: '#7c3aed',
+    bar: '#8b5cf6',
+    foundColors: ['#ddd6fe', '#e9d5ff', '#fbcfe8', '#c4b5fd', '#fde68a', '#f5d0fe'],
+  },
+  history: {
+    tint: 'rgba(161, 98, 7, 0.06)',
+    accent: '#854d0e',
+    bar: '#a16207',
+    foundColors: ['#fde68a', '#fef08a', '#fed7aa', '#fdba74', '#fbbf24', '#fcd34d'],
+  },
+  travel: {
+    tint: 'rgba(14, 165, 233, 0.06)',
+    accent: '#0284c7',
+    bar: '#0ea5e9',
+    foundColors: ['#bae6fd', '#a5f3fc', '#bfdbfe', '#7dd3fc', '#e0f2fe', '#99f6e4'],
+  },
+  technology: {
+    tint: 'rgba(100, 116, 139, 0.06)',
+    accent: '#475569',
+    bar: '#64748b',
+    foundColors: ['#cbd5e1', '#e2e8f0', '#bae6fd', '#c7d2fe', '#a5f3fc', '#f1f5f9'],
+  },
 };
 
 export function getCategoryFoundColor(category: CategoryId, index: number): string {

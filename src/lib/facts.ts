@@ -103,6 +103,10 @@ export function getGenericFact(category: string): string {
     nature: 'A single mature oak tree can support hundreds of species.',
     space: 'There are more stars in the universe than grains of sand on Earth.',
     books: 'The longest novel ever published has over 9 million words.',
+    mythology: 'Greek mythology alone has hundreds of named gods and heroes.',
+    history: 'The Rosetta Stone unlocked the reading of Egyptian hieroglyphs.',
+    travel: 'The first commercial jet airliner flew in 1952.',
+    technology: 'The first website went live in 1991 at CERN.',
   };
   return generics[category] ?? 'Every word has a story waiting to be discovered.';
 }

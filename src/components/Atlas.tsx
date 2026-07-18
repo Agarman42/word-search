@@ -20,6 +20,13 @@ const ATLAS_PATHS: [CategoryId, CategoryId][] = [
   ['science', 'space'],
   ['nature', 'science'],
   ['books', 'holiday'],
+  ['mythology', 'history'],
+  ['mythology', 'books'],
+  ['history', 'geography'],
+  ['travel', 'geography'],
+  ['travel', 'nature'],
+  ['technology', 'science'],
+  ['technology', 'space'],
 ];
 
 interface AtlasProps {

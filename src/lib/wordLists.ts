@@ -14,6 +14,10 @@ export const CATEGORIES: Category[] = [
   { id: 'nature', name: 'Nature', icon: '🌿', description: 'Forests, weather, and wild places', color: '#65a30d', atlasX: 18, atlasY: 72 },
   { id: 'space', name: 'Space', icon: '🚀', description: 'Stars, planets, and cosmic quests', color: '#4f46e5', atlasX: 82, atlasY: 18 },
   { id: 'books', name: 'Books', icon: '📚', description: 'Stories, poets, and literary worlds', color: '#b45309', atlasX: 72, atlasY: 78 },
+  { id: 'mythology', name: 'Mythology', icon: '⚡', description: 'Gods, legends, and ancient tales', color: '#8b5cf6', atlasX: 42, atlasY: 82 },
+  { id: 'history', name: 'History', icon: '🏛️', description: 'Empires, eras, and events past', color: '#a16207', atlasX: 88, atlasY: 55 },
+  { id: 'travel', name: 'Travel', icon: '✈️', description: 'Journeys, destinations, and adventure', color: '#0ea5e9', atlasX: 8, atlasY: 42 },
+  { id: 'technology', name: 'Technology', icon: '💻', description: 'Code, gadgets, and digital life', color: '#64748b', atlasX: 92, atlasY: 28 },
 ];
 
 export function getCategory(id: CategoryId): Category {
