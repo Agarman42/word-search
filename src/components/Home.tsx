@@ -9,6 +9,7 @@ import {
 import { getContinueLabel, getContinueSession } from '../lib/continueSession';
 import { getPostDailyGoal } from '../lib/homeGoals';
 import { APP_NAME, APP_TAGLINE } from '../lib/brand';
+import { getContentDepth } from '../lib/contentDepth';
 import { getCategory } from '../lib/wordLists';
 import { HomeBackground } from './HomeBackground';
 import { AnnouncementRail } from './AnnouncementRail';
@@ -79,6 +80,7 @@ export function Home({
   const postDaily = dailyCompleted ? getPostDailyGoal(stats) : null;
   const tomorrowCat = getCategory(getDailyCategory(getTomorrowDateString(today)));
   const streakAtRisk = stats.dailyStreak >= 2 && !dailyCompleted;
+  const contentDepth = getContentDepth();
 
   return (
     <div className="screen home-screen">
@@ -110,6 +112,9 @@ export function Home({
               </div>
               <h1 className="hero-title display-font">{APP_NAME}</h1>
               <p className="hero-subtitle">{APP_TAGLINE}</p>
+              <p className="hero-depth" aria-label={contentDepth.homeLine}>
+                {contentDepth.homeLine}
+              </p>
             </header>
 
             <div className="home-hero-cta">

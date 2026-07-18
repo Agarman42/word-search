@@ -338,6 +338,21 @@ html.theme-dark .panel-card {
   font-weight: 400;
 }
 
+/* Quiet library depth cue — secondary to tagline, not a CTA */
+.hero-depth {
+  margin: 8px 0 0;
+  padding: 0 8px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  line-height: 1.35;
+  color: var(--text-muted, var(--text-secondary));
+  opacity: 0.88;
+  max-width: 320px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 /* ── Buttons ── */
 
 .home-actions {
@@ -3233,6 +3248,12 @@ html.theme-dark .recent-game-row {
   max-width: 280px;
 }
 
+.home-content-balanced .hero-compact .hero-depth {
+  margin-top: 6px;
+  font-size: 0.68rem;
+  max-width: 300px;
+}
+
 .home-content-balanced .hero-compact .hero-logo {
   margin-bottom: 2px;
 }
@@ -3330,6 +3351,11 @@ html.theme-dark .recent-game-row {
 
   .home-content-balanced .hero-compact .hero-subtitle {
     display: none;
+  }
+
+  .home-content-balanced .hero-compact .hero-depth {
+    margin-top: 4px;
+    font-size: 0.64rem;
   }
 
   .home-content-balanced .home-hero-card {
