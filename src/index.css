@@ -1692,7 +1692,8 @@ html.theme-dark .complete-achievement-banner {
 
 .bottom-nav-dock {
   position: fixed;
-  bottom: calc(var(--dock-offset) + var(--safe-bottom));
+  /* Sit above the version stamp at the very bottom */
+  bottom: calc(var(--version-height) + var(--dock-offset) + var(--safe-bottom));
   left: 50%;
   transform: translateX(-50%);
   width: calc(100% - 32px);
@@ -1778,12 +1779,13 @@ html.theme-dark .complete-achievement-banner {
   user-select: none;
 }
 
+/* Version sits at the very bottom of the screen (below tab bar) */
 .app:not([data-screen='game']) .version-footer {
-  bottom: calc(var(--nav-height) + var(--dock-offset) + var(--safe-bottom) - 2px);
+  bottom: calc(var(--safe-bottom) + 4px);
 }
 
 .app[data-screen='game'] .version-footer {
-  bottom: calc(var(--safe-bottom) + 6px);
+  bottom: calc(var(--safe-bottom) + 4px);
 }
 
 .version-brand {
@@ -4364,7 +4366,7 @@ a:focus:not(:focus-visible) {
   position: fixed;
   left: 50%;
   transform: translateX(-50%);
-  bottom: calc(var(--nav-height) + var(--dock-offset) + var(--safe-bottom) + 14px);
+  bottom: calc(var(--nav-height) + var(--dock-offset) + var(--version-height) + var(--safe-bottom) + 14px);
   width: calc(100% - 32px);
   max-width: 488px;
   z-index: 80;
