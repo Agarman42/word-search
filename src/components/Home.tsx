@@ -85,7 +85,7 @@ export function Home({
     <div className="screen home-screen">
       <HomeBackground />
 
-      <div className="home-content">
+      <div className="home-content home-content-dense">
         <div className="home-top-bar">
           <ThemeToggle lightBackground={lightBackground} onChange={onToggleLight} compact />
         </div>
@@ -105,10 +105,9 @@ export function Home({
         <div className="home-hero-card panel-card">
           <header className="hero hero-fun hero-compact">
             <div className="hero-logo">
-              <LogoMark size={48} />
+              <LogoMark size={40} />
               <div className="hero-logo-ring" />
             </div>
-            <p className="hero-eyebrow">Swipe · Find · Win</p>
             <h1 className="hero-title display-font">{APP_NAME}</h1>
             <p className="hero-subtitle">{APP_TAGLINE}</p>
           </header>
@@ -184,7 +183,7 @@ export function Home({
               }
             >
               <div className="home-streak-badge" aria-hidden="true">
-                <IconStreak size={26} className="home-streak-flame-icon" />
+                <IconStreak size={22} className="home-streak-flame-icon" />
                 <span className="home-streak-count">{stats.dailyStreak}</span>
               </div>
               <div className="home-streak-copy">
@@ -197,10 +196,10 @@ export function Home({
                 </span>
                 <span className="home-streak-sub">
                   {streakAtRisk
-                    ? `Play Daily #${getDailyNumber(today)} before midnight or you lose ${stats.dailyStreak} days.`
+                    ? `Play Daily #${getDailyNumber(today)} today or lose ${stats.dailyStreak} days.`
                     : dailyCompleted
-                      ? `${stats.dailyStreak}-day streak — come back tomorrow to grow it.`
-                      : `${stats.dailyStreak}-day streak — play today’s Daily to make it ${stats.dailyStreak + 1}.`}
+                      ? `${stats.dailyStreak}-day streak — see you tomorrow.`
+                      : `${stats.dailyStreak}-day streak — Daily makes it ${stats.dailyStreak + 1}.`}
                 </span>
               </div>
               <span className="home-streak-cta" aria-hidden="true">

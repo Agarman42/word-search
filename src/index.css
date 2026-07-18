@@ -29,6 +29,7 @@
   --dock-offset: 16px;
   --version-height: 26px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-top: env(safe-area-inset-top, 0px);
   --ease-spring: cubic-bezier(0.22, 1, 0.36, 1);
   --font: 'Sora', system-ui, -apple-system, sans-serif;
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
@@ -216,7 +217,7 @@ body {
 }
 
 .screen {
-  padding: 20px 18px;
+  padding: calc(16px + var(--safe-top)) 18px 20px;
   animation: screenIn 0.45s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -3150,7 +3151,181 @@ html.theme-dark .recent-game-row {
 .home-content {
   position: relative;
   z-index: 1;
-  padding: 16px 18px 20px;
+  /* Clear iPhone status bar / notch / Dynamic Island */
+  padding: calc(var(--safe-top) + 10px) 14px 10px;
+}
+
+/* Dense home — fit primary actions without scrolling on typical phones */
+.home-content-dense {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.home-content-dense .home-top-bar {
+  margin-bottom: 0;
+}
+
+.home-content-dense .announcement-rail {
+  margin-bottom: 0;
+}
+
+.home-content-dense .announcement-card,
+.home-content-dense .install-prompt {
+  padding: 8px 10px;
+  margin-bottom: 0;
+}
+
+.home-content-dense .announce-title {
+  font-size: 0.85rem;
+}
+
+.home-content-dense .announce-desc {
+  font-size: 0.68rem;
+  line-height: 1.3;
+}
+
+.home-content-dense .home-hero-card {
+  margin-bottom: 0;
+  padding: 10px 12px 10px !important;
+}
+
+.home-content-dense .hero-compact {
+  padding: 2px 0 4px !important;
+}
+
+.home-content-dense .hero-compact .hero-title {
+  font-size: clamp(1.75rem, 7vw, 2.15rem) !important;
+  margin: 2px 0 !important;
+}
+
+.home-content-dense .hero-compact .hero-subtitle {
+  font-size: 0.75rem;
+  line-height: 1.3;
+  max-width: 260px;
+}
+
+.home-content-dense .hero-compact .hero-logo {
+  margin-bottom: 2px;
+  transform: scale(0.9);
+  transform-origin: center top;
+}
+
+.home-content-dense .home-hero-cta {
+  margin-top: 8px;
+  gap: 8px;
+}
+
+.home-content-dense .home-hero-cta .btn-large {
+  min-height: 48px;
+  padding: 10px 14px;
+}
+
+.home-content-dense .home-hero-cta .btn-sublabel {
+  font-size: 0.7rem;
+}
+
+.home-content-dense .home-streak-card {
+  margin-top: 8px;
+  padding: 10px 12px;
+  gap: 10px;
+  border-radius: 14px;
+}
+
+.home-content-dense .home-streak-badge {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+}
+
+.home-content-dense .home-streak-count {
+  font-size: 1.3rem;
+}
+
+.home-content-dense .home-streak-title {
+  font-size: 0.95rem;
+}
+
+.home-content-dense .home-streak-sub {
+  font-size: 0.72rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.home-content-dense .home-mode-row {
+  margin: 0;
+  gap: 6px;
+}
+
+.home-content-dense .home-mode-chip {
+  padding: 6px 10px;
+  font-size: 0.68rem;
+}
+
+.home-content-dense .home-quick-fun {
+  margin-bottom: 0;
+  gap: 8px;
+}
+
+.home-content-dense .quick-link-fun {
+  padding: 10px 4px;
+  gap: 4px;
+}
+
+.home-content-dense .quick-link-label {
+  font-size: 0.68rem;
+}
+
+.home-content-dense .home-stats-strip {
+  margin-bottom: 0;
+  gap: 6px;
+}
+
+.home-content-dense .stat-pill {
+  padding: 6px 10px;
+  font-size: 0.68rem;
+}
+
+.home-content-dense .home-new-player {
+  padding: 12px;
+  margin: 0;
+}
+
+.home-content-dense .home-new-player p {
+  font-size: 0.8rem;
+  margin: 0;
+}
+
+/* Extra-short phones (SE / small landscape) — drop tagline, tighter stack */
+@media (max-height: 720px) {
+  .home-content-dense .hero-compact .hero-subtitle {
+    display: none;
+  }
+
+  .home-content-dense {
+    gap: 6px;
+  }
+
+  .home-content-dense .home-streak-card {
+    padding: 8px 10px;
+  }
+
+  .home-content-dense .home-streak-badge {
+    width: 46px;
+    height: 46px;
+  }
+}
+
+/* Prefer no scroll on home when content fits */
+.app[data-screen='home'] .app-main {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-bottom: calc(
+    var(--nav-height) + var(--dock-offset) + var(--version-height) +
+    var(--safe-bottom) + 12px
+  );
 }
 
 .home-bg {
