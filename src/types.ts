@@ -105,6 +105,8 @@ export interface GameRecord {
   completedAt: number;
   isDaily: boolean;
   wordsFound?: number;
+  /** Words that appeared on this board (for anti-repeat). */
+  wordsPlayed?: string[];
   packId?: string;
   packLevel?: number;
   usedHint?: boolean;
@@ -124,6 +126,8 @@ export interface Stats {
   completedDailyDates: string[];
   recentGames: GameRecord[];
   favoriteWords: string[];
+  /** Recently seen puzzle words (most recent first) — avoid immediate repeats. */
+  recentWords: string[];
   blitzHighScore: number;
   weekWordsFound: number;
   weekStartDate: string | null;

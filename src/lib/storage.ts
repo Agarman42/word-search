@@ -20,6 +20,7 @@ const DEFAULT_STATS: Stats = {
   completedDailyDates: [],
   recentGames: [],
   favoriteWords: [],
+  recentWords: [],
   blitzHighScore: 0,
   weekWordsFound: 0,
   weekStartDate: getWeekStart(),
@@ -127,6 +128,15 @@ export function recordGameCompletion(stats: Stats, record: GameRecord): Stats {
   }
 
   const recentGames = [record, ...s.recentGames].slice(0, 30);
+  const played = (record.wordsPlayed ?? [])
+    .map((w) => w.toUpperCase())
+    .filter((w) => w.length >= 3);
+  const recentWords = played.length
+    ? [
+        ...played,
+        ...(s.recentWords ?? []).filter((w) => !played.includes(w.toUpperCase())),
+      ].slice(0, 140)
+    : (s.recentWords ?? []);
   s = {
     ...s,
     totalPuzzlesCompleted: s.totalPuzzlesCompleted + 1,
@@ -138,6 +148,7 @@ export function recordGameCompletion(stats: Stats, record: GameRecord): Stats {
       [record.category]: (s.categoryCompletions[record.category] ?? 0) + 1,
     },
     recentGames,
+    recentWords,
   };
 
   if (record.mode === 'blitz' && (record.wordsFound ?? 0) > s.blitzHighScore) {

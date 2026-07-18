@@ -56,6 +56,8 @@ interface GameProps {
   blitzHighScore: number;
   dailyStreak: number;
   totalPuzzlesCompleted: number;
+  /** Recently seen words — skip for free play / packs so boards feel fresh. */
+  recentWords?: string[];
   newAchievement?: Achievement | null;
   showInstallNudge?: boolean;
   installMode?: InstallMode | null;
@@ -97,6 +99,7 @@ export function Game({
   blitzHighScore,
   dailyStreak,
   totalPuzzlesCompleted,
+  recentWords = [],
   newAchievement,
   showInstallNudge,
   installMode,
@@ -168,6 +171,12 @@ export function Game({
     return getPuzzleOptions(settings, gridSize);
   }, [isDaily, challenge, packLevelConfig, settings, gridSize]);
 
+  // Daily / challenge boards stay shared — never filter by local history.
+  const excludeWords = useMemo(
+    () => (isDaily || challenge ? [] : recentWords),
+    [isDaily, challenge, recentWords],
+  );
+
   const puzzle: Puzzle = useMemo(
     () =>
       generatePuzzle(
@@ -178,8 +187,9 @@ export function Game({
         puzzleOptions,
         0,
         packLevelConfig?.wordPool,
+        excludeWords,
       ),
-    [category, gridSize, wordCount, seed, puzzleOptions, packLevelConfig?.wordPool],
+    [category, gridSize, wordCount, seed, puzzleOptions, packLevelConfig?.wordPool, excludeWords],
   );
 
   const soundSettings = useMemo(
@@ -307,6 +317,9 @@ export function Game({
       );
       playCompleteSound(soundSettings, wordsFoundCount);
 
+      const wordsPlayed = isBlitz
+        ? [...foundWords.keys()]
+        : puzzle.words.map((w) => w.word);
       const record: GameRecord = {
         id: `${Date.now()}`,
         category,
@@ -314,6 +327,7 @@ export function Game({
         gridSize,
         wordCount: isBlitz ? wordsFoundCount : puzzle.words.length,
         wordsFound: wordsFoundCount,
+        wordsPlayed,
         timeMs,
         wrongAttempts: misses,
         completedAt: Date.now(),
@@ -331,7 +345,8 @@ export function Game({
       gridSize,
       category,
       mode,
-      puzzle.words.length,
+      puzzle.words,
+      foundWords,
       isDaily,
       isPack,
       packId,

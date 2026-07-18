@@ -31,6 +31,28 @@ export function getSampleWords(category: CategoryId, count = 3): string[] {
   return pool.slice(0, count);
 }
 
+function pickUnique(
+  pool: string[],
+  count: number,
+  rng: () => number,
+  already: Set<string>,
+): string[] {
+  const available = pool.filter((w) => !already.has(w));
+  const selected: string[] = [];
+  const working = [...available];
+  while (selected.length < count && working.length > 0) {
+    const idx = Math.floor(rng() * working.length);
+    const word = working.splice(idx, 1)[0];
+    selected.push(word);
+    already.add(word);
+  }
+  return selected;
+}
+
+/**
+ * Pick puzzle words. Prefers words not in `exclude` (recent boards) so
+ * back-to-back category/pack runs feel fresh until the bank is exhausted.
+ */
 export function getWordsForCategory(
   category: CategoryId,
   count: number,
@@ -38,21 +60,30 @@ export function getWordsForCategory(
   minLen = 3,
   maxLen = 15,
   customPool?: string[],
+  exclude: readonly string[] = [],
 ): string[] {
+  const excludeSet = new Set(exclude.map((w) => w.toUpperCase()));
   const source = customPool?.length ? customPool : WORD_BANKS[category];
-  const bank = source.filter((w) => w.length >= minLen && w.length <= maxLen);
-  // Fallback to category bank if custom pool too thin for length range
-  const effective =
-    bank.length >= Math.min(count, 4)
-      ? bank
-      : WORD_BANKS[category].filter((w) => w.length >= minLen && w.length <= maxLen);
-  const pool = [...effective];
-  const selected: string[] = [];
-
-  while (selected.length < count && pool.length > 0) {
-    const idx = Math.floor(rng() * pool.length);
-    selected.push(pool.splice(idx, 1)[0]);
+  const deduped = [...new Set(source.map((w) => w.toUpperCase()))];
+  let bank = deduped.filter((w) => w.length >= minLen && w.length <= maxLen);
+  // Fallback to full category bank if custom pool too thin for length range
+  if (bank.length < Math.min(count, 4)) {
+    bank = [
+      ...new Set(
+        WORD_BANKS[category]
+          .map((w) => w.toUpperCase())
+          .filter((w) => w.length >= minLen && w.length <= maxLen),
+      ),
+    ];
   }
+
+  const fresh = bank.filter((w) => !excludeSet.has(w));
+  const recycled = bank.filter((w) => excludeSet.has(w));
+  const seen = new Set<string>();
+  const selected = [
+    ...pickUnique(fresh, count, rng, seen),
+    ...pickUnique(recycled, count - seen.size, rng, seen),
+  ];
 
   return selected.sort((a, b) => a.localeCompare(b));
 }

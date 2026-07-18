@@ -170,6 +170,7 @@ function tryPlace(
   seed: string,
   options: PuzzleOptions,
   wordPool?: string[],
+  excludeWords: readonly string[] = [],
 ): Puzzle | null {
   const clamped = clampOptions(gridSize, options);
   const rng = createRng(seed);
@@ -180,6 +181,7 @@ function tryPlace(
     clamped.minWordLength,
     clamped.maxWordLength,
     wordPool,
+    excludeWords,
   );
   if (words.length === 0) return null;
 
@@ -311,9 +313,10 @@ export function generatePuzzle(
   options: PuzzleOptions = { allowBackwards: false, minWordLength: 3, maxWordLength: 15 },
   depth = 0,
   wordPool?: string[],
+  excludeWords: readonly string[] = [],
 ): Puzzle {
   const clamped = clampOptions(gridSize, options);
-  const result = tryPlace(category, gridSize, wordCount, seed, clamped, wordPool);
+  const result = tryPlace(category, gridSize, wordCount, seed, clamped, wordPool, excludeWords);
   if (result) return result;
 
   if (depth >= MAX_DEPTH) {
@@ -328,6 +331,7 @@ export function generatePuzzle(
         maxWordLength: Math.min(gridSize, 6),
       },
       wordPool,
+      excludeWords,
     );
     if (fallback) return fallback;
 
@@ -350,6 +354,7 @@ export function generatePuzzle(
     },
     depth + 1,
     wordPool,
+    excludeWords,
   );
 }
 

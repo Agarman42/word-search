@@ -255,15 +255,15 @@ export function Home({
         <div className="home-stack-bottom">
           {!isNewPlayer && (
             <div className="home-stats-strip">
-              <div className="stat-pill">
+              <div className="stat-pill" title="Puzzles you have finished">
                 <IconPuzzle size={14} />
                 <span className="stat-pill-val">{stats.totalPuzzlesCompleted}</span>
-                <span className="stat-pill-lbl">puzzles</span>
+                <span className="stat-pill-lbl">finished</span>
               </div>
-              <div className="stat-pill">
+              <div className="stat-pill" title="Words you have found across all puzzles">
                 <IconSpark size={14} />
                 <span className="stat-pill-val">{stats.totalWordsFound}</span>
-                <span className="stat-pill-lbl">words</span>
+                <span className="stat-pill-lbl">found</span>
               </div>
             </div>
           )}

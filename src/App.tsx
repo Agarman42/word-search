@@ -367,6 +367,7 @@ export default function App() {
             blitzHighScore={state.stats.blitzHighScore}
             dailyStreak={state.stats.dailyStreak}
             totalPuzzlesCompleted={state.stats.totalPuzzlesCompleted}
+            recentWords={state.stats.recentWords ?? []}
             newAchievement={unlockQueue[0] ?? null}
             showInstallNudge={canShowCompleteNudge}
             installMode={installMode}
