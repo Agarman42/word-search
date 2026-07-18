@@ -14,7 +14,6 @@ import { HomeBackground } from './HomeBackground';
 import { AnnouncementRail } from './AnnouncementRail';
 import type { InstallMode } from '../lib/install';
 import {
-  CategoryIcon,
   IconCalendar,
   IconContinue,
   IconPack,
@@ -265,10 +264,6 @@ export function Home({
                 <IconSpark size={14} />
                 <span className="stat-pill-val">{stats.totalWordsFound}</span>
                 <span className="stat-pill-lbl">words</span>
-              </div>
-              <div className="stat-pill">
-                <CategoryIcon id={dailyCat} size={14} />
-                <span className="stat-pill-lbl">today: {getCategory(dailyCat).name}</span>
               </div>
             </div>
           )}
