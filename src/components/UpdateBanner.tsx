@@ -12,18 +12,22 @@ export function UpdateBanner() {
 
   return (
     <div className="update-banner" role="status">
-      <span className="update-banner-text">A new version of WordSeek is ready</span>
-      <button type="button" className="btn btn-primary btn-sm" onClick={() => reload()}>
-        Update now
-      </button>
-      <button
-        type="button"
-        className="update-banner-dismiss"
-        onClick={() => setReload(null)}
-        aria-label="Dismiss"
-      >
-        Later
-      </button>
+      <div className="update-banner-copy">
+        <span className="update-banner-title">Update available</span>
+        <span className="update-banner-text">A new version of WordSeek is ready</span>
+      </div>
+      <div className="update-banner-actions">
+        <button type="button" className="btn btn-primary update-banner-btn" onClick={() => reload()}>
+          Update now
+        </button>
+        <button
+          type="button"
+          className="update-banner-dismiss"
+          onClick={() => setReload(null)}
+        >
+          Later
+        </button>
+      </div>
     </div>
   );
 }
