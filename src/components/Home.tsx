@@ -170,19 +170,44 @@ export function Home({
             )}
           </div>
 
-          {streakAtRisk ? (
-            <button type="button" className="home-streak-pill home-streak-risk" onClick={onDaily}>
-              <IconStreak size={16} />
-              <span>
-                {stats.dailyStreak}-day streak at risk — play Daily to keep it!
+          {stats.dailyStreak > 0 && (
+            <button
+              type="button"
+              className={`home-streak-card ${streakAtRisk ? 'is-risk' : 'is-safe'}`}
+              onClick={streakAtRisk || !dailyCompleted ? onDaily : onPlay}
+              aria-label={
+                streakAtRisk
+                  ? `${stats.dailyStreak} day streak at risk. Play daily to keep it.`
+                  : dailyCompleted
+                    ? `${stats.dailyStreak} day streak. Keep playing.`
+                    : `${stats.dailyStreak} day streak. Play daily to grow it.`
+              }
+            >
+              <div className="home-streak-badge" aria-hidden="true">
+                <IconStreak size={26} className="home-streak-flame-icon" />
+                <span className="home-streak-count">{stats.dailyStreak}</span>
+              </div>
+              <div className="home-streak-copy">
+                <span className="home-streak-title">
+                  {streakAtRisk
+                    ? 'Streak at risk!'
+                    : dailyCompleted
+                      ? 'Streak locked in'
+                      : 'Keep your streak alive'}
+                </span>
+                <span className="home-streak-sub">
+                  {streakAtRisk
+                    ? `Play Daily #${getDailyNumber(today)} before midnight or you lose ${stats.dailyStreak} days.`
+                    : dailyCompleted
+                      ? `${stats.dailyStreak}-day streak — come back tomorrow to grow it.`
+                      : `${stats.dailyStreak}-day streak — play today’s Daily to make it ${stats.dailyStreak + 1}.`}
+                </span>
+              </div>
+              <span className="home-streak-cta" aria-hidden="true">
+                {streakAtRisk || !dailyCompleted ? 'Play' : '→'}
               </span>
             </button>
-          ) : stats.dailyStreak > 0 ? (
-            <div className="home-streak-pill">
-              <IconStreak size={16} />
-              <span>{stats.dailyStreak} day streak — keep it going!</span>
-            </div>
-          ) : null}
+          )}
         </div>
 
         <div className="home-mode-row">
