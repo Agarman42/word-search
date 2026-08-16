@@ -29,7 +29,9 @@ import { getWordFact, getGenericFact } from '../lib/facts';
 import { getCompletionMessage, getWordFoundMessage, getBlitzEndMessage } from '../lib/microcopy';
 import { generateChallengeUrl } from '../lib/share';
 import { getPack, getPackSeed, getPackShuffleSeed } from '../lib/packs';
-import { getPackLevelConfig } from '../lib/packLevels';
+import { resolvePackLevelConfig } from '../lib/resolvePackLevel';
+import { isCuratedPack } from '../lib/curatedPacks';
+import { displayWord } from '../lib/wordDisplay';
 import { CategoryIcon, IconBack, IconHint, IconPack, IconShuffle, IconSpark } from './Icons';
 import { ThemeToggle } from './ThemeToggle';
 import { Grid, getFoundColor, getFoundPattern } from './Grid';
@@ -136,7 +138,7 @@ export function Game({
 
   const packLevelConfig = useMemo(() => {
     if (isPack && packId != null && packLevel != null) {
-      return getPackLevelConfig(packId, packLevel);
+      return resolvePackLevelConfig(packId, packLevel);
     }
     return null;
   }, [isPack, packId, packLevel]);
@@ -173,8 +175,8 @@ export function Game({
 
   // Daily / challenge boards stay shared — never filter by local history.
   const excludeWords = useMemo(
-    () => (isDaily || challenge ? [] : recentWords),
-    [isDaily, challenge, recentWords],
+    () => (isDaily || challenge || isCuratedPack(packId) ? [] : recentWords),
+    [isDaily, challenge, packId, recentWords],
   );
 
   const puzzle: Puzzle = useMemo(
@@ -520,7 +522,7 @@ export function Game({
       content: (
         <>
           <IconSpark size={14} className="toast-spark-icon" />
-          {getWordFoundMessage(lastFound)} <strong>{lastFound}</strong>
+          {getWordFoundMessage(lastFound)} <strong>{displayWord(lastFound)}</strong>
         </>
       ),
     });
