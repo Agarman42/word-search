@@ -201,7 +201,7 @@ export default function App() {
   };
 
   /** After completing a puzzle: next level / next free puzzle / leave daily. */
-  const handleGameComplete = () => {
+  const handleGameContinue = () => {
     if (unlockQueue[0]) dismissUnlock();
 
     if (packSession) {
