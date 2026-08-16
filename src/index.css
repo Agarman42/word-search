@@ -733,7 +733,7 @@ html.theme-dark .category-plays {
 /* ── Game ── */
 
 .game-screen {
-  padding: 8px 12px 4px;
+  padding: calc(var(--safe-top) + 8px) 12px 4px;
   display: flex;
   flex-direction: column;
   gap: 6px;
