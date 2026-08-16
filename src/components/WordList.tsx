@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { PlacedWord, Settings } from '../types';
+import { displayWord } from '../lib/wordDisplay';
 import { IconStar } from './Icons';
 
 interface WordListProps {
@@ -69,7 +70,7 @@ export function WordList({
                 handleWordTap(w);
               }}
             >
-              {w.word}
+              {displayWord(w.word)}
             </span>
           ))}
           {hiddenCount > 3 && (
@@ -114,7 +115,7 @@ export function WordList({
                     onClick={() => handleWordTap(w)}
                     disabled={found || !onWordTap}
                   >
-                    <span className="word-list-text">{w.word}</span>
+                    <span className="word-list-text">{displayWord(w.word)}</span>
                   </button>
                   {found && onToggleFavorite && (
                     <button

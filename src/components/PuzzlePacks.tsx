@@ -87,7 +87,7 @@ export function PuzzlePacks({ stats, onSelectPack, embedded }: PuzzlePacksProps)
 
   return (
     <div className="screen packs-screen">
-      <ScreenHeader title="Puzzle Packs" subtitle="Curated 10-puzzle series to master" />
+      <ScreenHeader title="Puzzle Packs" subtitle="Curated hunts — including new family favorites" />
       {content}
     </div>
   );
