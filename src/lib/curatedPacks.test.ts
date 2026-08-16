@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { getWordsForCategory } from './wordLists';
 import { createRng } from './rng';
-import { getPackLevelConfig } from './packLevels';
 import {
   CURATED_PACK_DEFS,
   CURATED_PACK_IDS,
   getCuratedGridWords,
+  getCuratedLevelConfig,
   toGridForm,
 } from './curatedPacks';
 
@@ -43,24 +43,25 @@ describe('curated family packs', () => {
     expect(toGridForm('Milehigh')).toBe('MILEHIGH');
   });
 
-  it('overrides getPackLevelConfig so the full list stays in range', () => {
+  it('keeps the full list in range so category banks cannot leak in', () => {
     for (const def of CURATED_PACK_DEFS) {
-      const cfg = getPackLevelConfig(def.id, 0);
+      const cfg = getCuratedLevelConfig(def.id);
       const pool = getCuratedGridWords(def.id);
-      expect(cfg.wordCount).toBe(pool.length);
-      expect(cfg.gridSize).toBe(def.gridSize);
-      expect(cfg.gridSize).toBeGreaterThanOrEqual(Math.max(...pool.map((w) => w.length)));
-      expect(cfg.options.minWordLength).toBeLessThanOrEqual(3);
-      expect(cfg.options.maxWordLength).toBe(def.gridSize);
-      expect(cfg.wordPool).toEqual(pool);
+      expect(cfg).not.toBeNull();
+      expect(cfg!.wordCount).toBe(pool.length);
+      expect(cfg!.gridSize).toBe(def.gridSize);
+      expect(cfg!.gridSize).toBeGreaterThanOrEqual(Math.max(...pool.map((w) => w.length)));
+      expect(cfg!.options.minWordLength).toBeLessThanOrEqual(3);
+      expect(cfg!.options.maxWordLength).toBe(def.gridSize);
+      expect(cfg!.wordPool).toEqual(pool);
 
       const picked = getWordsForCategory(
         'animals',
-        cfg.wordCount,
+        cfg!.wordCount,
         createRng(`curated-${def.id}`),
-        cfg.options.minWordLength,
-        cfg.options.maxWordLength,
-        cfg.wordPool,
+        cfg!.options.minWordLength,
+        cfg!.options.maxWordLength,
+        cfg!.wordPool,
       );
       expect(picked).toHaveLength(pool.length);
       expect(picked.sort()).toEqual([...pool].sort());
