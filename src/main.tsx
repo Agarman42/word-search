@@ -4,6 +4,7 @@ import App from './App';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { initPwaUpdates } from './lib/pwaUpdate';
 import './index.css';
+import './newPacks.css';
 
 initPwaUpdates();
 

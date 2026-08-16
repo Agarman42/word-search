@@ -23,6 +23,8 @@ import { AmbientBackground } from './components/AmbientBackground';
 import { VersionFooter } from './components/VersionFooter';
 import { AchievementUnlock } from './components/AchievementUnlock';
 import { UpdateBanner } from './components/UpdateBanner';
+import { NewPacksPopup } from './components/NewPacksPopup';
+import { dismissNewPacksWave, shouldShowNewPacksPopup } from './lib/newPacksWave';
 
 type NavDirection = 'forward' | 'back' | 'tab';
 
@@ -62,6 +64,7 @@ export default function App() {
   const [initialLayoutKey, setInitialLayoutKey] = useState(0);
   const [showOnboarding, setShowOnboarding] = useState(() => !hasCompletedOnboarding());
   const [showDailyNudge, setShowDailyNudge] = useState(false);
+  const [showNewPacks, setShowNewPacks] = useState(false);
   const [returnScreen, setReturnScreen] = useState<Screen>('home');
   const [statsTab, setStatsTab] = useState<'overview' | 'weekly' | 'achievements'>('overview');
   const prevScreen = useRef(screen);
@@ -113,6 +116,12 @@ export default function App() {
       setShowDailyNudge(true);
     }
   }, [showOnboarding, dailyCompleted, state.stats.totalPuzzlesCompleted]);
+
+  useEffect(() => {
+    if (shouldShowNewPacksPopup(state.stats, { onboardingVisible: showOnboarding })) {
+      setShowNewPacks(true);
+    }
+  }, [showOnboarding, state.stats]);
 
   const navigateTo = (target: Screen) => {
     const from = prevScreen.current;
@@ -432,6 +441,19 @@ export default function App() {
       <Navigation screen={screen} onNavigate={handleNavigate} />
       {showOnboarding && (
         <Onboarding onComplete={handleOnboardingComplete} />
+      )}
+      {showNewPacks && screen === 'home' && !showOnboarding && (
+        <NewPacksPopup
+          onSelectPack={(packId, level, category) => {
+            dismissNewPacksWave();
+            setShowNewPacks(false);
+            startPackGame(packId, level, category);
+          }}
+          onDismiss={() => {
+            dismissNewPacksWave();
+            setShowNewPacks(false);
+          }}
+        />
       )}
       {unlockQueue[0] && screen !== 'game' && (
         <AchievementUnlock achievement={unlockQueue[0]} onDismiss={dismissUnlock} />
